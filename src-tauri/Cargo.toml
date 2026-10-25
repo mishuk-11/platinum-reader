@@ -1,0 +1,26 @@
+[package]
+name = "quire"
+version = "0.2.0"
+description = "Quire — ultra-lightweight open-source document reader"
+authors = ["Inzamam Islam"]
+license = "AGPL-3.0-or-later"
+repository = "https://github.com/mishuk-11/quire"
+edition = "2021"
+
+[build-dependencies]
+tauri-build = { version = "2", features = [] }
+
+[dependencies]
+tauri = { version = "2", features = ["devtools"] }
+tauri-plugin-dialog = "2"
+tauri-plugin-opener = "2"
+tauri-plugin-single-instance = "2"
+serde = { version = "1", features = ["derive"] }
+serde_json = "1"
+
+[profile.release]
+codegen-units = 1
+lto = true
+opt-level = "s"
+panic = "abort"
+strip = true
