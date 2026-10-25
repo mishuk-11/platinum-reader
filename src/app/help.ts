@@ -43,10 +43,14 @@ function showShortcuts() {
 type Result = { name: string; status: 'pass' | 'warn' | 'fail'; detail: string }
 let lastResults: Result[] = []
 
-async function selfTests(onResult: (r: Result) => void) {
+const CHECK_TIMEOUT = 15000 // the engine is shared with open documents, so a busy one must not hang the test
+
+async function selfTests(onResult: (r: Result) => void, onStart: (name: string) => void = () => {}) {
   const run = async (name: string, fn: () => Promise<[Result['status'], string]>) => {
     let r: Result
-    try { const [status, detail] = await fn(); r = { name, status, detail } } catch (err: any) { r = { name, status: 'fail', detail: String(err?.message ?? err) } }
+    onStart(name)
+    const timeout = new Promise<never>((_, reject) => setTimeout(() => reject(new Error('timed out after 15 s (busy with open documents?)')), CHECK_TIMEOUT))
+    try { const [status, detail] = await Promise.race([fn(), timeout]); r = { name, status, detail } } catch (err: any) { r = { name, status: 'fail', detail: String(err?.message ?? err) } }
     onResult(r)
     return r
   }
@@ -73,7 +77,7 @@ async function selfTests(onResult: (r: Result) => void) {
     localStorage.removeItem('selftest')
     return ok ? ['pass', 'settings, history and highlights can be saved'] : ['fail', 'storage is blocked']
   }))
-  const sys = await invoke<any>('system_info')
+  const sys = await invoke<any>('system_info').catch(() => ({ peek: {} }))
   results.push(await run('Installation', async () => ['pass', sys.allUsersInstall ? 'all users (Program Files)' : `just this user (${sys.os})`]))
   if (sys.peek?.supported) {
     results.push(await run('Default PDF app', async () => sys.peek.pdfDefault?.startsWith('PlatinumReader')
@@ -102,7 +106,9 @@ export async function runSelfTest() {
   const actions = h('div', { class: 'update-actions' })
   dialog('Self-test', h('div', {}, summary, list, actions), 'wide')
   const ICON = { pass: Check, warn: AlertTriangle, fail: X }
-  lastResults = await selfTests((r) => list.append(h('li', { class: r.status }, icon(ICON[r.status], 16), h('b', {}, r.name), h('span', {}, r.detail))))
+  lastResults = await selfTests(
+    (r) => list.append(h('li', { class: r.status }, icon(ICON[r.status], 16), h('b', {}, r.name), h('span', {}, r.detail))),
+    (name) => { summary.textContent = `Checking ${name.toLowerCase()}…` })
   const fails = lastResults.filter((r) => r.status === 'fail').length
   const warns = lastResults.filter((r) => r.status === 'warn').length
   summary.textContent = fails ? `${fails} check${fails > 1 ? 's' : ''} failed.` : warns ? `All essential checks passed, ${warns} warning${warns > 1 ? 's' : ''}.` : 'Everything works.'
