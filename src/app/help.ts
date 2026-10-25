@@ -3,7 +3,7 @@ import { getVersion } from '@tauri-apps/api/app'
 import { invoke } from '@tauri-apps/api/core'
 import { open as openPicker } from '@tauri-apps/plugin-dialog'
 import { openUrl, revealItemInDir } from '@tauri-apps/plugin-opener'
-import { BookOpen, Keyboard, Stethoscope, MessageSquare, Bug, RefreshCw, Info, ImagePlus, Check, AlertTriangle, X } from 'lucide'
+import { BookOpen, Keyboard, Stethoscope, MessageSquare, Mail, Bug, RefreshCw, Info, ImagePlus, Check, AlertTriangle, X } from 'lucide'
 import { Doc } from '../engine/client'
 import { state } from './app'
 import { findInPage } from './search'
@@ -13,7 +13,7 @@ import { check as checkUpdates, REPO } from './updates'
 import { showAbout } from './dialogs'
 import { dialog, h, icon, toast } from './ui'
 
-export const DEVELOPER_EMAIL = 'trade.inzamam@gmail.com'
+export const DEVELOPER_EMAIL = 'inzamam.im11@gmail.com'
 /** Windows only lets the user pick default apps; this opens Platinum Reader's page in Settings. */
 export const openDefaultApps = () => openUrl('ms-settings:defaultapps?registeredAppMachine=Platinum%20Reader').catch(() => openUrl('ms-settings:defaultapps'))
 
@@ -147,12 +147,14 @@ export function showFeedback(topic = 'Feature idea', withReport = false) {
         const p = await openPicker({ filters: [{ name: 'Image', extensions: ['png', 'jpg', 'jpeg', 'gif', 'webp', 'bmp'] }] })
         if (p) { shot = p; shotLabel.textContent = p.split(/[\\/]/).pop()! }
       } }, icon(ImagePlus, 15), 'Add…')),
-    h('p', { class: 'muted small' }, `Opens your email app addressed to ${DEVELOPER_EMAIL}. Attachments are saved to a folder that opens next to it, so you can drag them into the email.`),
-    h('div', { class: 'set-foot' }, h('button', { class: 'btn primary', onclick: send }, icon(MessageSquare, 16), 'Send feedback')))
+    h('p', { class: 'muted small' }, `Goes to ${DEVELOPER_EMAIL}. Attachments are saved to a folder that opens next to the email, so you can drag them in.`),
+    h('div', { class: 'set-foot update-actions' },
+      h('button', { class: 'btn primary', onclick: () => send('gmail') }, icon(Mail, 16), 'Send with Gmail'),
+      h('button', { class: 'btn', onclick: () => send('app') }, icon(MessageSquare, 16), 'Use my email app')))
   msg.addEventListener('input', () => { err.textContent = '' })
   const close = dialog('Send feedback', body, 'wide')
 
-  async function send() {
+  async function send(via: 'gmail' | 'app') {
     const text = msg.value.trim()
     if (!text) { err.textContent = 'Write a few words first'; msg.focus(); return }
     let folderFile = ''
@@ -163,7 +165,11 @@ export function showFeedback(topic = 'Feature idea', withReport = false) {
     const lines = [text, '', '—', `Platinum Reader ${version} · ${navigator.platform}`]
     if (folderFile) lines.push(`Attachments: ${report.checked ? 'diagnostic-report.json' : ''}${shot ? ' + screenshot' : ''} (please attach from the opened folder)`)
     const subject = `Needs Pt. Reader: ${sel.value}`
-    await openUrl(`mailto:${DEVELOPER_EMAIL}?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(lines.join('\n'))}`)
+    const q = (k: string, v: string) => `${k}=${encodeURIComponent(v)}`
+    // Gmail in the browser works without a desktop mail app; mailto needs one set up in Windows.
+    await openUrl(via === 'gmail'
+      ? `https://mail.google.com/mail/?view=cm&fs=1&${q('to', DEVELOPER_EMAIL)}&${q('su', subject)}&${q('body', lines.join('\n'))}`
+      : `mailto:${DEVELOPER_EMAIL}?${q('subject', subject)}&${q('body', lines.join('\n'))}`)
     if (folderFile) await revealItemInDir(folderFile)
     close()
     toast('Email drafted. Attach the files and press send.', 5000)

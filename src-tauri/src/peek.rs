@@ -42,6 +42,9 @@ mod win {
     const HOLD: Duration = Duration::from_millis(3000);
     const RUN_KEY: PCWSTR = w!("Software\\Microsoft\\Windows\\CurrentVersion\\Run");
     const RUN_VALUE: PCWSTR = w!("PlatinumReaderPeek");
+    // Read by the installer hook (src-tauri/windows/hooks.nsh).
+    const PREFS_KEY: PCWSTR = w!("Software\\PlatinumReaderPrefs");
+    const PEEK_DISABLED: PCWSTR = w!("PeekDisabled");
 
     static APP: OnceLock<AppHandle> = OnceLock::new();
     /// Bumped on every press/release/move-cancel; a pending hold only fires if it is unchanged.
@@ -70,8 +73,12 @@ mod win {
                 let cmd: Vec<u16> = format!("\"{}\" {HELPER_ARG}\0", exe.display()).encode_utf16().collect();
                 let bytes = std::slice::from_raw_parts(cmd.as_ptr() as *const u8, cmd.len() * 2);
                 let _ = RegSetKeyValueW(HKEY_CURRENT_USER, RUN_KEY, RUN_VALUE, REG_SZ.0, Some(bytes.as_ptr() as _), bytes.len() as u32);
+                let _ = RegDeleteKeyValueW(HKEY_CURRENT_USER, PREFS_KEY, PEEK_DISABLED);
             } else {
                 let _ = RegDeleteKeyValueW(HKEY_CURRENT_USER, RUN_KEY, RUN_VALUE);
+                // Remembered so the installer doesn't switch it back on during an update.
+                let one = 1u32.to_le_bytes();
+                let _ = RegSetKeyValueW(HKEY_CURRENT_USER, PREFS_KEY, PEEK_DISABLED, REG_DWORD.0, Some(one.as_ptr() as _), 4);
             }
         }
         // The helper refuses to run twice (named mutex), so spawning when it's already up is harmless.

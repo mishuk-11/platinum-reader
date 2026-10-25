@@ -51,6 +51,13 @@
   WriteRegStr SHCTX "Software\Classes\PlatinumReader.xps\DefaultIcon" "" "$INSTDIR\filetypes\xps.ico"
   WriteRegStr SHCTX "Software\Classes\PlatinumReader.md\DefaultIcon" "" "$INSTDIR\filetypes\md.ico"
   WriteRegStr SHCTX "Software\Classes\PlatinumReader.chm\DefaultIcon" "" "$INSTDIR\filetypes\chm.ico"
+  ; Hold-to-preview helper: on unless the user turned it off (that choice survives updates).
+  ; RunAsUser starts it as the signed-in user, not elevated, so it can talk to Explorer.
+  ReadRegDWORD $0 HKCU "Software\PlatinumReaderPrefs" "PeekDisabled"
+  IntCmp $0 1 pr_peek_done
+  WriteRegStr HKCU "Software\Microsoft\Windows\CurrentVersion\Run" "PlatinumReaderPeek" '"$INSTDIR\platinum-reader.exe" --peek-helper'
+  nsis_tauri_utils::RunAsUser "$INSTDIR\platinum-reader.exe" "--peek-helper"
+  pr_peek_done:
   WriteRegStr SHCTX "Software\RegisteredApplications" "Platinum Reader" "Software\PlatinumReader\Capabilities"
   ; Tell Explorer that file associations changed (SHCNE_ASSOCCHANGED).
   System::Call 'shell32::SHChangeNotify(i 0x08000000, i 0, p 0, p 0)'
