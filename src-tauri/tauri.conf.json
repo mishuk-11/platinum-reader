@@ -43,22 +43,22 @@
       "icons/icon.ico"
     ],
     "windows": {
-      "nsis": { "installMode": "currentUser" }
+      "nsis": { "installMode": "currentUser", "installerHooks": "windows/hooks.nsh" }
     },
     "linux": {
       "deb": { "depends": ["p7zip-full"] }
     },
     "fileAssociations": [
-      { "ext": ["pdf"], "name": "PDF Document", "description": "PDF Document", "mimeType": "application/pdf", "role": "Viewer" },
-      { "ext": ["epub"], "name": "EPUB Book", "description": "EPUB Book", "mimeType": "application/epub+zip", "role": "Viewer" },
-      { "ext": ["mobi", "azw", "azw3"], "name": "Kindle Book", "description": "Kindle Book", "mimeType": "application/x-mobipocket-ebook", "role": "Viewer" },
-      { "ext": ["fb2"], "name": "FictionBook", "description": "FictionBook", "mimeType": "application/x-fictionbook+xml", "role": "Viewer" },
-      { "ext": ["cbz"], "name": "Comic Book (ZIP)", "description": "Comic Book (ZIP)", "mimeType": "application/vnd.comicbook+zip", "role": "Viewer" },
-      { "ext": ["cbr"], "name": "Comic Book (RAR)", "description": "Comic Book (RAR)", "mimeType": "application/vnd.comicbook-rar", "role": "Viewer" },
-      { "ext": ["djvu", "djv"], "name": "DjVu Document", "description": "DjVu Document", "mimeType": "image/vnd.djvu", "role": "Viewer" },
-      { "ext": ["xps", "oxps"], "name": "XPS Document", "description": "XPS Document", "mimeType": "application/oxps", "role": "Viewer" },
-      { "ext": ["md", "markdown"], "name": "Markdown Document", "description": "Markdown Document", "mimeType": "text/markdown", "role": "Viewer" },
-      { "ext": ["chm"], "name": "Compiled HTML Help", "description": "Compiled HTML Help", "mimeType": "application/vnd.ms-htmlhelp", "role": "Viewer" }
+      { "ext": ["pdf"], "name": "Quire.pdf", "description": "PDF Document", "mimeType": "application/pdf", "role": "Viewer" },
+      { "ext": ["epub"], "name": "Quire.epub", "description": "EPUB Book", "mimeType": "application/epub+zip", "role": "Viewer" },
+      { "ext": ["mobi", "azw", "azw3"], "name": "Quire.mobi", "description": "Kindle Book", "mimeType": "application/x-mobipocket-ebook", "role": "Viewer" },
+      { "ext": ["fb2"], "name": "Quire.fb2", "description": "FictionBook", "mimeType": "application/x-fictionbook+xml", "role": "Viewer" },
+      { "ext": ["cbz"], "name": "Quire.cbz", "description": "Comic Book (ZIP)", "mimeType": "application/vnd.comicbook+zip", "role": "Viewer" },
+      { "ext": ["cbr"], "name": "Quire.cbr", "description": "Comic Book (RAR)", "mimeType": "application/vnd.comicbook-rar", "role": "Viewer" },
+      { "ext": ["djvu", "djv"], "name": "Quire.djvu", "description": "DjVu Document", "mimeType": "image/vnd.djvu", "role": "Viewer" },
+      { "ext": ["xps", "oxps"], "name": "Quire.xps", "description": "XPS Document", "mimeType": "application/oxps", "role": "Viewer" },
+      { "ext": ["md", "markdown"], "name": "Quire.md", "description": "Markdown Document", "mimeType": "text/markdown", "role": "Viewer" },
+      { "ext": ["chm"], "name": "Quire.chm", "description": "Compiled HTML Help", "mimeType": "application/vnd.ms-htmlhelp", "role": "Viewer" }
     ]
   }
 }
