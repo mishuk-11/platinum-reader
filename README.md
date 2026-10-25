@@ -199,6 +199,7 @@ src-tauri/           Rust: file reading, CLI args, single instance, CHM unpackin
 
 | Version | Codename |
 |---|---|
+| 0.4.2-beta | BabyKoala |
 | 0.4.1-beta | Honeybee |
 | 0.4.0-beta | Honeybee |
 | 0.3.0-beta | Carrotbunny |

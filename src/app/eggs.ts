@@ -114,6 +114,7 @@ export const RELEASES: { version: string; name: string; emoji: string[] }[] = [
   { version: '0.2.0', name: 'FairyRocket', emoji: ['🧚', '🚀'] },
   { version: '0.3.0', name: 'Carrotbunny', emoji: ['🥕', '🐰'] },
   { version: '0.4.0', name: 'Honeybee', emoji: ['🐝', '🍯'] },
+  { version: '0.4.2', name: 'BabyKoala', emoji: ['🐨', '🌿'] },
 ]
 
 const reduced = () => matchMedia('(prefers-reduced-motion: reduce)').matches

@@ -1,6 +1,6 @@
 [package]
 name = "platinum-reader"
-version = "0.4.1-beta"
+version = "0.4.2-beta"
 description = "Platinum Reader — ultra-lightweight open-source document reader"
 authors = ["Inzamam Islam"]
 license = "AGPL-3.0-or-later"

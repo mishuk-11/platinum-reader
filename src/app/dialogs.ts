@@ -13,7 +13,7 @@ import { copyDiagnostics, openDevtools, resetAllData } from './dev'
 import { updateSettings } from './updates'
 import { openDefaultApps } from './help'
 
-export const VERSION_NAME = 'Honeybee'
+export const VERSION_NAME = 'BabyKoala'
 export const DEVELOPER = 'Inzamam Islam'
 export const GITHUB = 'https://github.com/mishuk-11'
 // Lucide 1.x dropped brand icons; this is its former GitHub glyph.
@@ -117,7 +117,7 @@ export async function showProperties(tab: Tab) {
 
 // ---------- about ----------
 export async function showAbout() {
-  const version = await getVersion().catch(() => '0.4.1-beta')
+  const version = await getVersion().catch(() => '0.4.2-beta')
   let clicks = 0
   const name = h('button', {
     class: 'dev-name', title: DEVELOPER,

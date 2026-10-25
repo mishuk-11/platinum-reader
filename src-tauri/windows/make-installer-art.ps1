@@ -1,6 +1,6 @@
 # Draws the NSIS installer artwork (sidebar 164x314, header 150x57) as 24-bit BMPs.
-# Run from src-tauri/windows:  powershell -ExecutionPolicy Bypass -File make-installer-art.ps1 -Codename Honeybee
-param([string]$Codename = 'Honeybee', [string]$Version = '')
+# Run from src-tauri/windows:  powershell -ExecutionPolicy Bypass -File make-installer-art.ps1 -Codename BabyKoala
+param([string]$Codename = 'BabyKoala', [string]$Version = '')
 Add-Type -AssemblyName System.Drawing
 $ErrorActionPreference = 'Stop'
 

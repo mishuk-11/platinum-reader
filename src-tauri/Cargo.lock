@@ -2498,7 +2498,7 @@ checksum = "f6b464fbc74e149a392436b17d523f769e057cb6877f6a5c4618bc6f11800548"
 
 [[package]]
 name = "platinum-reader"
-version = "0.4.1-beta"
+version = "0.4.2-beta"
 dependencies = [
  "serde",
  "serde_json",

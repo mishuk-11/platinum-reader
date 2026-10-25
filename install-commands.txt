@@ -31,13 +31,13 @@ curl -fsSL https://raw.githubusercontent.com/mishuk-11/platinum-reader/main/inst
 INSTALL FROM A DOWNLOADED INSTALLER (Windows, no internet needed)
 --------------------------------------------------------------
 Normal (asks just me / all users):
-  "Platinum Reader_0.4.1-beta_x64-setup.exe"
+  "Platinum Reader_0.4.2-beta_x64-setup.exe"
 
 Silent, just for the current user (no admin prompt):
-  "Platinum Reader_0.4.1-beta_x64-setup.exe" /S /CURRENTUSER
+  "Platinum Reader_0.4.2-beta_x64-setup.exe" /S /CURRENTUSER
 
 Silent, for all users in Program Files (admin prompt):
-  "Platinum Reader_0.4.1-beta_x64-setup.exe" /S /ALLUSERS
+  "Platinum Reader_0.4.2-beta_x64-setup.exe" /S /ALLUSERS
 
 
 UNINSTALL (Windows)
