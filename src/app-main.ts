@@ -3,7 +3,7 @@ import { invoke } from '@tauri-apps/api/core'
 import { listen } from '@tauri-apps/api/event'
 import { getCurrentWebview } from '@tauri-apps/api/webview'
 import { getCurrentWebviewWindow } from '@tauri-apps/api/webviewWindow'
-import { activate, activeViewer, closeTab, cycleTab, focusedTab, openDialog, openFile, placeWindowControls, state, tabbar, workspace } from './app/app'
+import { activate, activeViewer, cycleTab, focusedTab, openDialog, openFile, placeWindowControls, state, tabbar, workspace } from './app/app'
 import { toolbar, refresh, toggleSidebar, focusPageBox, newWindow } from './app/toolbar'
 import { findBar, openFind, closeFind } from './app/find'
 import { showHighlightMenu } from './app/selection'
@@ -16,6 +16,8 @@ import { loadExtensions } from './app/extensions'
 import { applyDev } from './app/dev'
 import { initUpdates } from './app/updates'
 import { showHelp } from './app/help'
+import { confirmClose, requestClose, saveTab } from './app/save'
+import { getCurrentWindow } from '@tauri-apps/api/window'
 
 // Read before the first render, which saves the (still empty) tab list.
 const lastSession = session.get()
@@ -44,7 +46,8 @@ addEventListener('keydown', (e) => {
   if (mod) {
     if (key === 'o') return run(() => openDialog())
     if (key === 'n') return run(newWindow)
-    if (key === 'w') return run(() => { const t = focusedTab(); if (t) closeTab(t) })
+    if (key === 's') return run(() => saveTab(focusedTab(), e.shiftKey))
+    if (key === 'w') return run(() => { const t = focusedTab(); if (t) requestClose(t) })
     if (key === 'tab') return run(() => cycleTab(e.shiftKey ? -1 : 1))
     if (key === 'f') return run(openFind)
     if (key === 'g') return run(focusPageBox)
@@ -88,3 +91,10 @@ if (params.get('open')) {
   const restore = settings.restoreTabs ? lastSession.filter((p) => !pending.includes(p)) : []
   ;[...restore, ...pending].forEach((p) => openFile(p))
 }
+
+// Closing the window with unsaved highlights asks first.
+getCurrentWindow().onCloseRequested(async (e) => {
+  if (!state.tabs.some((t) => t.dirty)) return
+  e.preventDefault()
+  if (await confirmClose(state.tabs)) getCurrentWindow().destroy()
+})

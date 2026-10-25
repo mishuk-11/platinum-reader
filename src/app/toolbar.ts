@@ -1,17 +1,18 @@
 // Toolbar under the tab bar. Always drives the focused pane's viewer.
 import {
   PanelLeft, FolderOpen, ZoomIn, ZoomOut, MoveHorizontal, ChevronLeft, ChevronRight, Search, Printer,
-  EllipsisVertical, RefreshCw, LifeBuoy, Rows3, BookOpenText, File, Maximize, Settings, History, Info, AppWindow, Columns2, FileSearch, Expand, X, Puzzle,
+  EllipsisVertical, RefreshCw, LifeBuoy, Save, SaveAll, Rows3, BookOpenText, File, Maximize, Settings, History, Info, AppWindow, Columns2, FileSearch, Expand, X, Puzzle,
 } from 'lucide'
 import { WebviewWindow } from '@tauri-apps/api/webviewWindow'
 import { revealItemInDir } from '@tauri-apps/plugin-opener'
-import { activeViewer, changed, closeTab, focusedTab, openDialog, setSplit, sidebar, state } from './app'
+import { activeViewer, changed, focusedTab, openDialog, setSplit, sidebar, state } from './app'
 import { openFind } from './find'
 import { printDoc } from './print'
 import { showAbout, showExtensions, showHistory, showProperties, showSettings } from './dialogs'
 import { isOn, registry } from './extensions'
 import { check } from './updates'
 import { showHelp } from './help'
+import { saveTab, requestClose } from './save'
 import { toggleFullscreen } from './fullscreen'
 import { settings, setSetting, type ViewMode } from './store'
 import { button, h, icon, menu } from './ui'
@@ -19,6 +20,7 @@ import { button, h, icon, menu } from './ui'
 const pageInput = h('input', { class: 'page-input', type: 'text', inputmode: 'numeric', 'aria-label': 'Page number', title: 'Page number (Ctrl+G)' })
 const pageTotal = h('span', { class: 'page-total' }, '/ 0')
 const zoomBtn = h('button', { class: 'zoom-btn', title: 'Zoom presets', onclick: (e: MouseEvent) => zoomMenu(e) }, '100%')
+const saveBtn = button(Save, 'Save highlights into the PDF (Ctrl+S)', () => saveTab(focusedTab()))
 const fitBtn = button(MoveHorizontal, 'Fit width', () => activeViewer()?.setZoom('width'))
 const modeBtn = h('button', { class: 'tb-btn', title: 'View mode', 'aria-label': 'View mode', onclick: (e: MouseEvent) => modeMenu(e) }, icon(Rows3))
 
@@ -49,6 +51,7 @@ export const toolbar = h('div', { class: 'toolbar', 'data-tauri-drag-region': tr
   modeBtn,
   button(Maximize, 'Full screen (F11)', () => toggleFullscreen()),
   h('div', { class: 'drag', 'data-tauri-drag-region': true }),
+  saveBtn,
   button(Search, 'Find (Ctrl+F)', () => openFind()),
   button(Printer, 'Print (Ctrl+P)', () => { const v = activeViewer(); if (v) printDoc(v.doc) }),
   button(EllipsisVertical, 'More', (e) => moreMenu(e)),
@@ -87,6 +90,8 @@ function moreMenu(e: MouseEvent) {
   menu([
     { label: 'New window', icon: AppWindow, kbd: 'Ctrl+N', action: newWindow },
     { label: 'Open…', icon: FolderOpen, kbd: 'Ctrl+O', action: () => openDialog() },
+    { label: 'Save', icon: Save, kbd: 'Ctrl+S', disabled: !tab?.viewer?.doc.editable, action: () => saveTab(tab) },
+    { label: 'Save as…', icon: SaveAll, kbd: 'Ctrl+Shift+S', disabled: !tab?.viewer?.doc.editable, action: () => saveTab(tab, true) },
     { label: 'History', icon: History, kbd: 'Ctrl+H', action: showHistory },
     '-',
     { label: state.split ? 'Close split view' : 'Split view…', icon: Columns2, action: () => state.split ? setSplit(null) : openDialog(true) },
@@ -101,7 +106,7 @@ function moreMenu(e: MouseEvent) {
     { label: 'Check for updates', icon: RefreshCw, action: () => check(true) },
     { label: 'About Platinum Reader', icon: Info, action: showAbout },
     '-',
-    { label: 'Close tab', icon: X, kbd: 'Ctrl+W', disabled: !tab, action: () => tab && closeTab(tab) },
+    { label: 'Close tab', icon: X, kbd: 'Ctrl+W', disabled: !tab, action: () => tab && requestClose(tab) },
   ], r.right - 240, r.bottom + 4)
 }
 
@@ -138,6 +143,8 @@ export function refresh() {
   pageTotal.textContent = '/ ' + (v?.doc.pages ?? 0)
   zoomBtn.textContent = v ? Math.round(v.zoom * 100) + '%' : '—'
   fitBtn.classList.toggle('on', v?.fit === 'width')
+  saveBtn.classList.toggle('attention', !!focusedTab()?.dirty)
+  saveBtn.toggleAttribute('disabled', !v?.doc.editable)
   const mode = MODES.find((m) => m[0] === (v?.mode ?? settings.viewMode))!
   modeBtn.replaceChildren(icon(mode[2]))
   modeBtn.title = 'View mode: ' + mode[1]

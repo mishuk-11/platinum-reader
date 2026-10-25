@@ -8,10 +8,11 @@ import { Doc, SUPPORTED } from '../engine/client'
 import { Viewer } from './viewer'
 import { runOpenHooks } from './extensions'
 import { holdPreview } from './peek'
+import { markDirty, requestClose } from './save'
 import { history, session, settings, onSettings } from './store'
 import { h, icon, menu, toast } from './ui'
 
-export interface Tab { id: number; path: string; title: string; viewer?: Viewer; btn: HTMLElement; error?: boolean }
+export interface Tab { id: number; path: string; title: string; viewer?: Viewer; btn: HTMLElement; error?: boolean; dirty?: boolean }
 
 export const state = {
   tabs: [] as Tab[],
@@ -91,6 +92,8 @@ export async function openFile(path: string, opts: { page?: number; zoom?: numbe
     viewer.el.addEventListener('focusin', () => setFocus(state.split === tab ? 'right' : 'left'))
     history.put({ path, title: tab.title, page: recent?.page ?? 0, zoom: viewer.zoom, time: Date.now(), pages: doc.pages })
     tab.btn.replaceWith((tab.btn = tabButton(tab)))
+    viewer.onEdit = () => { if (doc.editable) markDirty(tab, true) }
+    if (doc.editable && viewer.hl.length) markDirty(tab, true) // highlights from last time, not yet saved into the PDF
     runOpenHooks(viewer, { path, pages: doc.pages, title: tab.title })
     render()
   } catch (err: any) {
@@ -104,12 +107,12 @@ function tabButton(tab: Tab) {
   const b = h('div', {
     class: 'tab', role: 'tab', title: tab.path, draggable: 'true',
     onclick: () => activate(tab),
-    onauxclick: (e: MouseEvent) => e.button === 1 && closeTab(tab),
+    onauxclick: (e: MouseEvent) => e.button === 1 && requestClose(tab),
     oncontextmenu: (e: MouseEvent) => { e.preventDefault(); tabMenu(tab, e.clientX, e.clientY) },
   },
   tab.viewer ? icon(FileText, 14) : h('span', { class: 'spinner' }),
   h('span', { class: 'tab-title' }, tab.title),
-  h('button', { class: 'tab-close', title: 'Close (Ctrl+W)', 'aria-label': 'Close tab', onclick: (e: Event) => { e.stopPropagation(); closeTab(tab) } }, icon(X, 13)))
+  h('button', { class: 'tab-close', title: 'Close (Ctrl+W)', 'aria-label': 'Close tab', onclick: (e: Event) => { e.stopPropagation(); requestClose(tab) } }, icon(X, 13)))
   holdPreview(b, tab.path, () => tab.viewer?.doc)
   // Drag to reorder.
   b.addEventListener('dragstart', (e) => e.dataTransfer!.setData('platinum/tab', String(tab.id)))
@@ -135,8 +138,8 @@ function tabMenu(tab: Tab, x: number, y: number) {
     { label: 'Copy path', icon: Copy, action: () => navigator.clipboard.writeText(tab.path) },
     { label: 'Show in folder', icon: FolderOpen, action: () => revealItemInDir(tab.path) },
     '-',
-    { label: 'Close other tabs', icon: XCircle, disabled: state.tabs.length < 2, action: () => state.tabs.filter((t) => t !== tab).forEach(closeTab) },
-    { label: 'Close', icon: X, kbd: 'Ctrl+W', action: () => closeTab(tab) },
+    { label: 'Close other tabs', icon: XCircle, disabled: state.tabs.length < 2, action: () => requestClose(...state.tabs.filter((t) => t !== tab)) },
+    { label: 'Close', icon: X, kbd: 'Ctrl+W', action: () => requestClose(tab) },
   ], x, y)
 }
 

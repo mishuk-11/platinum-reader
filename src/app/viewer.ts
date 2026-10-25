@@ -244,8 +244,8 @@ export class Viewer {
       x.rects.map(([l, t, w, ht]) => h('div', { style: { left: l + 'px', top: t + 'px', width: w + 'px', height: ht + 'px', background: x.color } }))))
   }
 
-  /** Turns the current text selection into a saved highlight. */
-  addHighlight(range: Range, color: string) {
+  /** Page-space rects (points) covered by a text selection, grouped by page. */
+  rectsOf(range: Range) {
     const byPage = new Map<number, Map<string, number[]>>()
     for (const r of range.getClientRects()) {
       if (r.width < 1 || r.height < 1) continue
@@ -259,12 +259,46 @@ export class Viewer {
         break
       }
     }
-    for (const [page, rects] of byPage) {
-      this.hl.push({ page, rects: [...rects.values()], color, text: range.toString() })
+    return new Map([...byPage].map(([p, m]) => [p, [...m.values()]]))
+  }
+
+  /** Turns the current text selection into a highlight (kept by the app until the PDF is saved). */
+  addHighlight(range: Range, color: string) {
+    for (const [page, rects] of this.rectsOf(range)) {
+      this.hl.push({ page, rects, color, text: range.toString() })
       this.drawHighlights(page)
     }
     highlights.set(this.doc.path, this.hl)
+    this.onEdit()
   }
+
+  /** Removes every highlight under the selection, including ones already saved inside the PDF. */
+  async unhighlight(range: Range) {
+    const hits = (a: number[], b: number[]) => a[0] < b[0] + b[2] && a[0] + a[2] > b[0] && a[1] < b[1] + b[3] && a[1] + a[3] > b[1]
+    let removed = 0
+    for (const [page, rects] of this.rectsOf(range)) {
+      const before = this.hl.length
+      this.hl = this.hl.filter((x) => x.page !== page || !x.rects.some((r) => rects.some((s) => hits(r, s))))
+      removed += before - this.hl.length
+      this.drawHighlights(page)
+      if (this.doc.editable && (await this.doc.removeHighlightsIn(page, rects))) {
+        removed++
+        this.rerender(page)
+      }
+    }
+    highlights.set(this.doc.path, this.hl)
+    if (removed) this.onEdit()
+    return removed
+  }
+
+  /** Redraws page images (after the PDF itself changed). */
+  rerender(page?: number) {
+    for (const p of page == null ? this.pageEls : [this.pageEls[page]]) p._scale = undefined
+    this.schedule()
+  }
+
+  /** Set by the app: highlights changed, so the document has unsaved changes. */
+  onEdit = () => {}
 
   highlightAt(e: MouseEvent): Highlight | undefined {
     const p = (e.target as HTMLElement).closest('.page') as PageEl | null
@@ -279,6 +313,7 @@ export class Viewer {
     this.hl = this.hl.filter((x) => x !== hl)
     highlights.set(this.doc.path, this.hl)
     this.drawHighlights(hl.page)
+    this.onEdit()
   }
 
   /** Set by the app: what clicking a saved highlight does. */

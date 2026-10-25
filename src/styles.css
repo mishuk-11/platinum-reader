@@ -262,6 +262,13 @@ body.dropping .workspace::after { content: "Drop to open"; position: absolute; i
 .recent-x { opacity: 0; margin-right: 4px; }
 .recent li:hover .recent-x { opacity: .7; }
 
+/* ---------- unsaved changes ---------- */
+.tab.dirty .tab-close { opacity: 1; }
+.tab.dirty:not(:hover) .tab-close svg { display: none; }
+.tab.dirty:not(:hover) .tab-close::before { content: ""; width: 8px; height: 8px; border-radius: 50%; background: var(--accent); }
+.tb-btn.attention { color: var(--accent); background: color-mix(in srgb, var(--accent) 14%, transparent); }
+.tb-btn[disabled] { opacity: .35; pointer-events: none; }
+
 /* ---------- help, self-test, feedback ---------- */
 .help-list { display: grid; gap: 2px; }
 .help-item { display: flex; align-items: center; gap: 12px; padding: 10px; border: 0; border-radius: 8px; background: none; text-align: left; }

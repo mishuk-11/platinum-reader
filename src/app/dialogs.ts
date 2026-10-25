@@ -7,7 +7,7 @@ import { Trash2, Puzzle, Plus, type IconNode } from 'lucide'
 import { recentList, type Tab } from './app'
 import { ACCENTS, AI, SEARCH, history, resetSettings, setSetting, settings, type Settings } from './store'
 import { dialog, h, icon, toast } from './ui'
-import { playEgg } from './eggs'
+import { playEgg, onHold, releaseShowdown } from './eggs'
 import { BUILTIN, userExtensions } from './extensions'
 import { copyDiagnostics, openDevtools, resetAllData } from './dev'
 import { updateSettings } from './updates'
@@ -117,14 +117,18 @@ export async function showProperties(tab: Tab) {
 
 // ---------- about ----------
 export async function showAbout() {
-  const version = await getVersion().catch(() => '0.4.0-beta')
+  const version = await getVersion().catch(() => '0.4.1-beta')
   let clicks = 0
   const name = h('button', {
     class: 'dev-name', title: DEVELOPER,
     onclick: () => { if (++clicks === 11) { clicks = 0; playEgg(name) } },
   }, DEVELOPER)
+  const logo = h('span', { class: 'logo big', title: 'Platinum Reader', style: { cursor: 'pointer', touchAction: 'none' } })
+  // Hold the Pt. icon 3 s (or the name 5 s): every release's emoji, one burst per codename.
+  onHold(logo, 3000, () => releaseShowdown(logo))
+  onHold(name, 5000, () => releaseShowdown(name))
   dialog('About', h('div', { class: 'about' },
-    h('span', { class: 'logo big' }),
+    logo,
     h('h1', {}, 'Platinum Reader'),
     h('p', { class: 'version' }, `Version ${version} · “${VERSION_NAME}”`),
     h('p', { class: 'muted' }, 'An ultra-lightweight, open-source reader for PDF, EPUB, MOBI, CBZ/CBR, DjVu, XPS, Markdown and CHM.'),

@@ -1,0 +1,60 @@
+PLATINUM READER - COMMAND-LINE INSTALL
+=======================================
+
+These download the newest release from GitHub (github.com/mishuk-11/platinum-reader),
+check its SHA-256 checksum, and install it. Nothing is installed if the checksum doesn't match.
+(They work once the repository and its first release are published on GitHub.)
+
+
+WINDOWS  (open PowerShell, paste, press Enter)
+-------
+irm https://raw.githubusercontent.com/mishuk-11/platinum-reader/main/install.ps1 | iex
+
+  The installer then asks: install just for you (no admin), or for all users in Program Files (admin).
+
+
+LINUX  (open a terminal, paste, press Enter)
+-----
+curl -fsSL https://raw.githubusercontent.com/mishuk-11/platinum-reader/main/install.sh | sh
+
+  Installs the AppImage to ~/.local/bin/platinum-reader.
+  For CHM files also install p7zip:   sudo apt install p7zip-full
+
+
+MACOS  (open Terminal, paste, press Enter)
+-----
+curl -fsSL https://raw.githubusercontent.com/mishuk-11/platinum-reader/main/install.sh | sh
+
+  Opens the .dmg; drag Platinum Reader into Applications.
+
+
+INSTALL FROM A DOWNLOADED INSTALLER (Windows, no internet needed)
+--------------------------------------------------------------
+Normal (asks just me / all users):
+  "Platinum Reader_0.4.1-beta_x64-setup.exe"
+
+Silent, just for the current user (no admin prompt):
+  "Platinum Reader_0.4.1-beta_x64-setup.exe" /S /CURRENTUSER
+
+Silent, for all users in Program Files (admin prompt):
+  "Platinum Reader_0.4.1-beta_x64-setup.exe" /S /ALLUSERS
+
+
+UNINSTALL (Windows)
+-------------------
+Settings > Apps > Installed apps > Platinum Reader > Uninstall
+or, for a Program Files install, from an admin terminal:
+  "C:\Program Files\Platinum Reader\uninstall.exe" /S
+
+
+BUILD FROM SOURCE (open-source toolchain, no Visual Studio)
+-----------------
+winget install OpenJS.NodeJS.LTS Rustlang.Rustup BrechtSanders.WinLibs.POSIX.UCRT
+rustup toolchain install stable-x86_64-pc-windows-gnu
+git clone https://github.com/mishuk-11/platinum-reader
+cd platinum-reader
+npm ci
+# in Git Bash:
+export PATH="$(ls -d ~/AppData/Local/Microsoft/WinGet/Packages/BrechtSanders.WinLibs*/mingw64/bin):$PATH"
+export CARGO_TARGET_DIR="$HOME/AppData/Local/platinum-build"    # a path without spaces
+RUSTUP_TOOLCHAIN=stable-x86_64-pc-windows-gnu npm run app:build

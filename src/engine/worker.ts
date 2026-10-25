@@ -2,7 +2,7 @@
 // MuPDF handles PDF, XPS, EPUB, MOBI, FB2, CBZ and HTML; djvu-rs handles DjVu.
 import * as mupdf from 'mupdf'
 import initDjvu, { WasmDocument } from 'djvu-rs'
-import type { OpenResult, PageText, Link, OutlineItem } from './types'
+import type { OpenResult, PageText, Link, OutlineItem, HighlightSpec } from './types'
 
 type Doc =
   | { kind: 'mu'; doc: mupdf.Document }
@@ -29,6 +29,16 @@ function flatOutline(doc: mupdf.Document, items: MuOutline[] | null, depth = 0, 
   return out
 }
 
+function pdfOf(id: number) {
+  const d = get(id)
+  const pdf = d.kind === 'mu' ? d.doc.asPDF() : null
+  if (!pdf) throw new Error('Only PDF files can be edited')
+  return pdf
+}
+
+const hexToRgb = (hex: string): [number, number, number] =>
+  [1, 3, 5].map((i) => parseInt(hex.slice(i, i + 2), 16) / 255) as [number, number, number]
+
 const ops = {
   async open(id: number, bytes: ArrayBuffer, name: string): Promise<OpenResult> {
     if (/\.djvu?$/i.test(name)) {
@@ -42,7 +52,7 @@ const ops = {
         sizes.push([p.width_at(72), p.height_at(72)])
         p.free()
       }
-      return { pages: sizes.length, sizes, outline: [], meta: {} }
+      return { pages: sizes.length, sizes, outline: [], meta: {}, editable: false }
     }
     const doc = mupdf.Document.openDocument(bytes, name)
     // Reflowable books (EPUB, MOBI, FB2, HTML) get laid out as A5-like pages; no-op for fixed layouts.
@@ -65,7 +75,7 @@ const ops = {
     }
     const fmt = doc.getMetaData('format')
     if (fmt) meta.Format = fmt
-    return { pages: n, sizes, outline, meta }
+    return { pages: n, sizes, outline, meta, editable: !!doc.asPDF() && /\.pdf$/i.test(name) }
   },
 
   async render(id: number, index: number, scale: number): Promise<ImageBitmap> {
@@ -118,6 +128,41 @@ const ops = {
     return out
   },
 
+  /** Writes highlights into the PDF as real Highlight annotations (in memory until saved). */
+  async addHighlights(id: number, items: HighlightSpec[]) {
+    const pdf = pdfOf(id)
+    for (const it of items) {
+      const page = pdf.loadPage(it.page) as mupdf.PDFPage
+      const a = page.createAnnotation('Highlight')
+      a.setColor(hexToRgb(it.color))
+      a.setQuadPoints(it.rects.map(([x, y, w, h]) => [x, y, x + w, y, x, y + h, x + w, y + h] as mupdf.Quad))
+      a.update()
+      page.update()
+    }
+    return items.length
+  },
+
+  /** Deletes stored Highlight annotations touching any of the rects on that page. Returns how many. */
+  async removeHighlightsIn(id: number, pageIndex: number, rects: number[][]) {
+    const page = pdfOf(id).loadPage(pageIndex) as mupdf.PDFPage
+    let removed = 0
+    for (const a of page.getAnnotations()) {
+      if (a.getType() !== 'Highlight') continue
+      const hit = a.getQuadPoints().some((q) => {
+        const qx0 = Math.min(q[0], q[4]), qx1 = Math.max(q[2], q[6]), qy0 = Math.min(q[1], q[3]), qy1 = Math.max(q[5], q[7])
+        return rects.some(([x, y, w, h]) => x < qx1 && x + w > qx0 && y < qy1 && y + h > qy0)
+      })
+      if (hit) { page.deleteAnnotation(a); removed++ }
+    }
+    if (removed) page.update()
+    return removed
+  },
+
+  async save(id: number): Promise<ArrayBuffer> {
+    const bytes = pdfOf(id).saveToBuffer('garbage=compact').asUint8Array()
+    return bytes.slice().buffer
+  },
+
   async close(id: number) {
     const d = docs.get(id)
     docs.delete(id)
@@ -130,7 +175,7 @@ self.onmessage = async (e: MessageEvent) => {
   const { id, op, args } = e.data
   try {
     const res = await (ops as any)[op](...args)
-    self.postMessage({ id, res }, { transfer: res instanceof ImageBitmap ? [res] : [] })
+    self.postMessage({ id, res }, { transfer: res instanceof ImageBitmap || res instanceof ArrayBuffer ? [res] : [] })
   } catch (err: any) {
     postMessage({ id, err: String(err?.message ?? err) })
   }

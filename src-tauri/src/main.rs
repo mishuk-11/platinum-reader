@@ -28,6 +28,27 @@ fn read_file(path: String) -> Result<tauri::ipc::Response, String> {
     std::fs::read(&path).map(tauri::ipc::Response::new).map_err(|e| format!("{path}: {e}"))
 }
 
+/// Saves an edited document. Body = raw bytes; the target path comes hex-encoded (UTF-8) in the
+/// `path` header so non-ASCII file names survive. Writes a temp file first, then swaps it in.
+#[tauri::command]
+fn write_file(request: tauri::ipc::Request) -> Result<(), String> {
+    let tauri::ipc::InvokeBody::Raw(data) = request.body() else {
+        return Err("expected raw bytes".into());
+    };
+    let hex = request.headers().get("path").and_then(|v| v.to_str().ok()).ok_or("missing path")?;
+    let bytes: Option<Vec<u8>> = (0..hex.len()).step_by(2).map(|i| hex.get(i..i + 2).and_then(|b| u8::from_str_radix(b, 16).ok())).collect();
+    let path = PathBuf::from(String::from_utf8(bytes.ok_or("bad path")?).map_err(|e| e.to_string())?);
+    if path.extension().and_then(|e| e.to_str()).map(|e| e.to_ascii_lowercase()) != Some("pdf".into()) {
+        return Err("only .pdf files can be written".into());
+    }
+    let tmp = path.with_extension("pdf.saving");
+    std::fs::write(&tmp, data).map_err(|e| format!("{}: {e}", tmp.display()))?;
+    std::fs::rename(&tmp, &path).map_err(|e| {
+        let _ = std::fs::remove_file(&tmp);
+        format!("{}: {e}", path.display())
+    })
+}
+
 #[tauri::command]
 fn file_size(path: String) -> u64 {
     std::fs::metadata(path).map(|m| m.len()).unwrap_or(0)
@@ -182,7 +203,14 @@ fn main() {
         .plugin(tauri_plugin_dialog::init())
         .plugin(tauri_plugin_opener::init())
         .manage(Pending(Mutex::new(file_args(&args, &cwd))))
-        .invoke_handler(tauri::generate_handler![read_file, file_size, pending_files, extract_chm, open_devtools, set_peek_helper, update_dir, download_update, run_installer, system_info, save_feedback])
+        // The main window is created here, not automatically from the config: the preview helper
+        // shares this config and must not open a second reader window.
+        .setup(|app| {
+            let config = app.config().app.windows.iter().find(|w| w.label == "main").cloned().expect("main window config");
+            tauri::WebviewWindowBuilder::from_config(app.handle(), &config)?.build()?;
+            Ok(())
+        })
+        .invoke_handler(tauri::generate_handler![read_file, write_file, file_size, pending_files, extract_chm, open_devtools, set_peek_helper, update_dir, download_update, run_installer, system_info, save_feedback])
         .build(tauri::generate_context!())
         .expect("error while running Platinum Reader")
         .run(|_app, _event| {

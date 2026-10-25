@@ -1,7 +1,7 @@
 {
   "name": "platinum-reader",
   "private": true,
-  "version": "0.4.0-beta",
+  "version": "0.4.1-beta",
   "description": "Ultra-lightweight open-source reader for PDF, EPUB, MOBI, CBZ/CBR, DjVu, XPS, Markdown and CHM",
   "license": "AGPL-3.0-or-later",
   "author": "Inzamam Islam (https://github.com/mishuk-11)",

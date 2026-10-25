@@ -1,0 +1,209 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Platinum Reader manual</title>
+<style>
+body { margin: 0; background: #f4f5f7; color: #1c2027; font-family: "Segoe UI", Helvetica, Arial, sans-serif; font-size: 15px; line-height: 1.55; }
+.page { max-width: 880px; margin: 0 auto; padding: 32px 28px 60px; background: #ffffff; }
+.cover { text-align: center; padding: 40px 0 28px; border-bottom: 2px solid #5ab8f5; margin-bottom: 26px; }
+.tile { display: inline-block; width: 84px; height: 84px; line-height: 84px; border-radius: 20px; font-size: 38px; font-weight: bold; color: #2a2f38; background-color: #e3e6ea; border: 2px solid #9fd6ff; }
+.tile b { color: #5ab8f5; }
+h1 { font-size: 30px; margin: 16px 0 4px; }
+.lead { color: #5d6573; margin: 0; }
+.ver { color: #2f86c9; font-weight: bold; margin-top: 6px; }
+h2 { font-size: 21px; margin: 34px 0 10px; padding-bottom: 6px; border-bottom: 1px solid #e1e4e9; page-break-before: always; }
+h2.first { page-break-before: auto; }
+h3 { font-size: 16px; margin: 20px 0 6px; color: #2a2f38; }
+p { margin: 8px 0; }
+ul, ol { margin: 8px 0 8px 22px; padding: 0; }
+li { margin: 3px 0; }
+img.shot { width: 100%; border: 1px solid #d5d9df; border-radius: 8px; margin: 10px 0 4px; }
+.cap { color: #6b7280; font-size: 13px; margin: 0 0 14px; }
+table { border-collapse: collapse; width: 100%; margin: 10px 0; font-size: 14px; }
+th, td { border: 1px solid #e1e4e9; padding: 6px 9px; text-align: left; vertical-align: top; }
+th { background-color: #eef3f8; }
+kbd { font-family: Consolas, monospace; font-size: 13px; border: 1px solid #c9ced6; border-radius: 4px; padding: 0 4px; background-color: #f7f8fa; }
+code, pre { font-family: Consolas, monospace; font-size: 13px; background-color: #f1f3f6; }
+pre { padding: 10px 12px; border-radius: 6px; border: 1px solid #e1e4e9; white-space: pre-wrap; }
+.note { background-color: #eaf5fd; border: 1px solid #b9dcf5; padding: 10px 12px; border-radius: 8px; margin: 12px 0; }
+.toc li { margin: 2px 0; }
+.foot { color: #6b7280; font-size: 12.5px; text-align: center; margin-top: 40px; }
+</style>
+</head>
+<body>
+<div class="page">
+
+<div class="cover">
+  <div class="tile">Pt<b>.</b></div>
+  <h1>Platinum Reader</h1>
+  <p class="lead">The master manual. An ultra-lightweight, open-source reader for PDF, EPUB, MOBI, CBZ/CBR, DjVu, XPS, Markdown and CHM.</p>
+  <p class="ver">Version 0.4.1-beta · “Honeybee”</p>
+</div>
+
+<h2 class="first">Contents</h2>
+<ol class="toc">
+  <li>Install</li><li>Getting started</li><li>Reading</li><li>Find</li><li>Highlights, unhighlight and saving</li>
+  <li>Tabs, split view and windows</li><li>Hold to preview</li><li>Settings</li><li>Help, self-test and feedback</li>
+  <li>Updates</li><li>Extensions and developer mode</li><li>Keyboard shortcuts</li><li>Troubleshooting</li><li>Versions and secrets</li>
+</ol>
+
+<h2>1. Install</h2>
+<img class="shot" src="img/00-installer.png" alt="Installer welcome page">
+<p class="cap">The installer. It asks whether to install just for you (no admin rights) or for all users in Program Files (admin).</p>
+<h3>From a terminal (one line)</h3>
+<pre>Windows (PowerShell):
+irm https://raw.githubusercontent.com/mishuk-11/platinum-reader/main/install.ps1 | iex
+
+Linux / macOS:
+curl -fsSL https://raw.githubusercontent.com/mishuk-11/platinum-reader/main/install.sh | sh</pre>
+<p>Both download the newest release from GitHub and check its SHA-256 checksum before installing. Silent installs: <code>setup.exe /S /CurrentUser</code> or <code>setup.exe /S /AllUsers</code>. All commands are in <code>install-commands.txt</code>.</p>
+<h3>Make it your default reader</h3>
+<p>Settings → <b>Make Platinum Reader the default…</b> opens Windows’ Default apps page. Choose Platinum Reader for each file type. Windows 11 only lets <i>you</i> pick defaults; once you do, files show Platinum Reader’s minimal type icons (PDF, EPUB, MD, …).</p>
+
+<h2>2. Getting started</h2>
+<img class="shot" src="img/01-home.png" alt="Home screen">
+<p class="cap">Home: open a document, drop files anywhere, or reopen a recent one at the page where you stopped.</p>
+<ul>
+  <li><b>Open:</b> <kbd>Ctrl+O</kbd>, the Open button, drag and drop, or double-click a file in Explorer.</li>
+  <li><b>Recent:</b> every document reopens at your last page. Press and hold a recent item for 3 s to preview its first page.</li>
+  <li><b>Tabs come back:</b> open tabs are restored the next time you start (Settings → Reading).</li>
+</ul>
+
+<h2>3. Reading</h2>
+<img class="shot" src="img/02-reading.png" alt="Reading view">
+<p class="cap">The reading view with the tab bar and toolbar.</p>
+<table>
+  <tr><th>Toolbar</th><th>What it does</th></tr>
+  <tr><td>Outline</td><td>Table of contents sidebar (<kbd>Ctrl+B</kbd>).</td></tr>
+  <tr><td>− 100% +</td><td>Zoom out / presets / zoom in. <kbd>Ctrl</kbd>+mouse wheel also zooms.</td></tr>
+  <tr><td>↔</td><td>Fit width.</td></tr>
+  <tr><td>Page box</td><td>Shows the current page. Click it, type a number, press <kbd>Enter</kbd> (<kbd>Ctrl+G</kbd>).</td></tr>
+  <tr><td>View mode</td><td>Continuous scrolling, facing pages, or single page.</td></tr>
+  <tr><td>Full screen</td><td><kbd>F11</kbd>: one page at a time, nothing else on screen. <kbd>Esc</kbd> to exit.</td></tr>
+  <tr><td>Save</td><td>Writes your highlights into the PDF (<kbd>Ctrl+S</kbd>). Lights up when there are unsaved changes.</td></tr>
+  <tr><td>Find · Print · ⋮</td><td>Search, print (<kbd>Ctrl+P</kbd>), and the main menu.</td></tr>
+</table>
+
+<h2>4. Find</h2>
+<img class="shot" src="img/03-find.png" alt="Find bar">
+<p class="cap">Every match is highlighted; the current one is orange. The counter shows “1 / 720”.</p>
+<ul>
+  <li><kbd>Ctrl+F</kbd> opens the bar. <kbd>Enter</kbd> / <kbd>Shift+Enter</kbd> or the arrows move between matches.</li>
+  <li><b>Aa</b> turns on match case.</li>
+  <li>Highlights from Find are temporary and disappear when you close the bar.</li>
+</ul>
+
+<h2>5. Highlights, unhighlight and saving</h2>
+<img class="shot" src="img/04-selection-menu.png" alt="Selection menu">
+<p class="cap">Select text and a floating menu appears: 6 highlight colors, the eraser, copy, web search, Ask AI, Translate and Define.</p>
+<img class="shot" src="img/05-highlights-unsaved.png" alt="Unsaved highlights">
+<p class="cap">Highlights in yellow and green. The blue dot on the tab means “not saved into the file yet”.</p>
+<ul>
+  <li><b>Highlight:</b> select text, pick a color.</li>
+  <li><b>Unhighlight:</b> select highlighted text and click the eraser. It also removes highlights already saved inside the PDF. You can also click a highlight to remove it.</li>
+  <li><b>Save</b> (<kbd>Ctrl+S</kbd>): writes your highlights into the PDF as real highlight annotations, so other PDF readers show them too.</li>
+  <li><b>Save as</b> (<kbd>Ctrl+Shift+S</kbd>): writes a new PDF and keeps the original untouched.</li>
+  <li>Closing a tab or the window with unsaved changes asks: <b>Save</b>, <b>Don’t save</b> or <b>Cancel</b>.</li>
+</ul>
+<div class="note">Only PDFs can be saved. In EPUB, MOBI, comics and other formats your highlights are kept by Platinum Reader itself.</div>
+
+<h2>6. Tabs, split view and windows</h2>
+<img class="shot" src="img/06-tab-menu.png" alt="Tab menu">
+<p class="cap">Right-click a tab for more options.</p>
+<img class="shot" src="img/06b-split-view.png" alt="Split view">
+<p class="cap">Split view: two documents side by side, each with its own zoom and page. Drag the divider to resize.</p>
+<ul>
+  <li><b>Open in new window</b> moves a tab into its own window.</li>
+  <li><b>Duplicate</b>, <b>Copy path</b>, <b>Show in folder</b>, <b>Close others</b>.</li>
+  <li>Drag tabs to reorder. Middle-click closes. <kbd>Ctrl+Tab</kbd> switches, <kbd>Ctrl+1…9</kbd> jumps.</li>
+  <li>Settings → Layout → <b>Tab bar position: Left</b> gives vertical tabs.</li>
+</ul>
+
+<h2>7. Hold to preview</h2>
+<img class="shot" src="img/12-explorer-hold.png" alt="Hold to preview in File Explorer">
+<p class="cap">In File Explorer: press and hold a PDF for 3 seconds without moving, and its first page appears. Let go and it’s gone.</p>
+<ul>
+  <li>Works in File Explorer, on the desktop, and inside the app (tabs, Recent, History).</li>
+  <li>It runs in the background: the reader doesn’t need to be open. A tiny helper starts when you sign in.</li>
+  <li>Turn it off in Settings → Reading. The helper stops within 5 seconds and no longer starts at sign-in.</li>
+  <li>Keep the mouse still: moving more than a few pixels is a drag, just like in Explorer.</li>
+</ul>
+
+<h2>8. Settings</h2>
+<img class="shot" src="img/07-settings.png" alt="Settings">
+<p class="cap">Settings (<kbd>Ctrl+,</kbd>).</p>
+<ul>
+  <li><b>Appearance:</b> light / dark / system, 8 accent themes (Platinum, Graphite, Ocean, Forest, Rose, Amber, Violet, Sepia), dark pages for night reading, density.</li>
+  <li><b>Layout:</b> tabs on top or left, toolbar labels, outline sidebar.</li>
+  <li><b>Reading:</b> default view and zoom, page gap, reopen tabs, hold to preview, default app.</li>
+  <li><b>Web:</b> which AI and search engine the selection menu uses.</li>
+  <li><b>Updates</b>, <b>Extensions</b> and <b>Developer</b> sections.</li>
+</ul>
+
+<h2>9. Help, self-test and feedback</h2>
+<img class="shot" src="img/08-help.png" alt="Help">
+<p class="cap">⋮ → Help, or <kbd>F1</kbd>.</p>
+<img class="shot" src="img/09-self-test.png" alt="Self-test">
+<p class="cap">The self-test checks the engine, search, storage, installation, default app, the background helper and the update server.</p>
+<img class="shot" src="img/11-feedback.png" alt="Send feedback">
+<p class="cap">Send feedback: pick a topic, write a message, optionally attach the diagnostic report and a screenshot.</p>
+<ul>
+  <li><b>Send with Gmail</b> opens Gmail in your browser, addressed to the developer with the subject “Needs Pt. Reader: &lt;topic&gt;”. <b>Use my email app</b> uses your installed mail program.</li>
+  <li>Attachments are saved to a folder that opens next to the email. Drag them into the message.</li>
+  <li>The diagnostic report contains versions, settings and self-test results, never your documents’ contents.</li>
+</ul>
+
+<h2>10. Updates</h2>
+<ul>
+  <li>Platinum Reader checks GitHub Releases at launch and once a day, and always asks first.</li>
+  <li><b>Update now</b> downloads, verifies the SHA-256 checksum and runs the installer. Or <b>Download installer</b>, or <b>Copy terminal command</b>.</li>
+  <li>Pause with <b>Remind me in 7 days</b>, <b>Skip this version</b>, or turn automatic checks off in Settings → Updates.</li>
+</ul>
+
+<h2>11. Extensions and developer mode</h2>
+<ul>
+  <li>Built-in extensions: Translate, Dictionary, Word count, Reading progress. Switch them in ⋮ → Extensions.</li>
+  <li>Add your own <code>.js</code> extension to add selection buttons, menu items and document hooks. See <code>EXTENSIONS.md</code>.</li>
+  <li>Settings → Developer mode: performance overlay, text-layer view, render quality, parallel renders, DevTools, diagnostics, reset.</li>
+</ul>
+
+<h2>12. Keyboard shortcuts</h2>
+<table>
+  <tr><th>Keys</th><th>Action</th><th>Keys</th><th>Action</th></tr>
+  <tr><td><kbd>Ctrl+O</kbd></td><td>Open</td><td><kbd>Ctrl+S</kbd></td><td>Save highlights</td></tr>
+  <tr><td><kbd>Ctrl+Shift+S</kbd></td><td>Save as</td><td><kbd>Ctrl+W</kbd></td><td>Close tab</td></tr>
+  <tr><td><kbd>Ctrl+N</kbd></td><td>New window</td><td><kbd>Ctrl+Tab</kbd></td><td>Next tab</td></tr>
+  <tr><td><kbd>Ctrl+F</kbd></td><td>Find</td><td><kbd>Ctrl+G</kbd></td><td>Go to page</td></tr>
+  <tr><td><kbd>Ctrl+B</kbd></td><td>Outline</td><td><kbd>Ctrl+H</kbd></td><td>History</td></tr>
+  <tr><td><kbd>Ctrl+,</kbd></td><td>Settings</td><td><kbd>F1</kbd></td><td>Help</td></tr>
+  <tr><td><kbd>Ctrl+P</kbd></td><td>Print</td><td><kbd>F11</kbd></td><td>Full screen</td></tr>
+  <tr><td><kbd>Ctrl +</kbd> / <kbd>−</kbd></td><td>Zoom</td><td><kbd>Ctrl+0</kbd></td><td>Fit width</td></tr>
+</table>
+
+<h2>13. Troubleshooting</h2>
+<table>
+  <tr><th>Problem</th><th>Fix</th></tr>
+  <tr><td>Files show a blank icon</td><td>Choose Platinum Reader as the default for that type (Settings → Make Platinum Reader the default…). Windows 11 only shows an app’s icons for types you assigned to it.</td></tr>
+  <tr><td>Hold to preview does nothing</td><td>Run the self-test (<kbd>F1</kbd>). “Hold to preview in Explorer” should pass. Keep the mouse completely still for 3 s. Search results and some cloud folders aren’t supported.</td></tr>
+  <tr><td>Send with Gmail shows a login page</td><td>Sign in to Gmail in your browser, or use “Use my email app”.</td></tr>
+  <tr><td>Update check says “not published yet”</td><td>Normal until the first public release is on GitHub.</td></tr>
+  <tr><td>Something else</td><td><kbd>F1</kbd> → Report a problem. It includes everything the developer needs.</td></tr>
+</table>
+
+<h2>14. Versions and secrets</h2>
+<table>
+  <tr><th>Version</th><th>Codename</th><th>Highlights</th></tr>
+  <tr><td>0.4.1-beta</td><td>🐝 Honeybee</td><td>Save / Save as into PDF, unhighlight, styled installer, manuals, test kit</td></tr>
+  <tr><td>0.4.0-beta</td><td>🐝 Honeybee</td><td>File-type icons, Help, self-test, feedback</td></tr>
+  <tr><td>0.3.0-beta</td><td>🥕🐰 Carrotbunny</td><td>Renamed to Platinum Reader, hold to preview, updates, Program Files install</td></tr>
+  <tr><td>0.2.0</td><td>🧚🚀 FairyRocket</td><td>Extensions, developer mode (as Quire)</td></tr>
+  <tr><td>0.1.0</td><td>🍒 Cherry Lava</td><td>First release (as Quire)</td></tr>
+</table>
+<p>Every codename hides a little surprise in ⋮ → About. Try pressing and holding things there, clicking the developer’s name more than ten times, or typing a certain bee’s favourite word while reading.</p>
+
+<p class="foot">Platinum Reader is open source (AGPL-3.0). Developed by Inzamam Islam · github.com/mishuk-11 · inzamam.im11@gmail.com</p>
+</div>
+</body>
+</html>

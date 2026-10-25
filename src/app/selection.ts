@@ -1,5 +1,5 @@
 // Floating menu over selected text: 6 highlight colors, copy, web search, ask AI.
-import { Copy, Search, Sparkles, Trash2, Puzzle } from 'lucide'
+import { Copy, Search, Sparkles, Trash2, Puzzle, Eraser } from 'lucide'
 import { openUrl } from '@tauri-apps/plugin-opener'
 import { activeViewer, state } from './app'
 import { AI, SEARCH, settings, type Highlight } from './store'
@@ -36,6 +36,10 @@ function showFor(viewer: Viewer, range: Range) {
       class: 'swatch', style: { background: c }, title: `Highlight ${name}`, 'aria-label': `Highlight ${name}`,
       onclick: () => { viewer.addHighlight(range, c); getSelection()?.removeAllRanges(); hide() },
     })),
+    h('button', { class: 'tb-btn', title: 'Remove highlight', 'aria-label': 'Remove highlight', onclick: async () => {
+      const n = await viewer.unhighlight(range); getSelection()?.removeAllRanges(); hide()
+      toast(n ? 'Highlight removed' : 'No highlight there')
+    } }, icon(Eraser, 16)),
     h('span', { class: 'sep' }),
     h('button', { class: 'tb-btn', title: 'Copy (Ctrl+C)', 'aria-label': 'Copy', onclick: () => { navigator.clipboard.writeText(text); toast('Copied'); hide() } }, icon(Copy, 16)),
     h('button', { class: 'tb-btn', title: `Search ${se[0]}`, 'aria-label': `Search ${se[0]}`, onclick: () => { web(se[1], text); hide() } }, icon(Search, 16)),

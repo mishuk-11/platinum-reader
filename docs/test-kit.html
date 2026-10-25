@@ -1,0 +1,204 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Platinum Reader test kit</title>
+<style>
+:root { --bg:#f4f5f7; --card:#fff; --text:#1c2027; --muted:#6b7280; --border:#e1e4e9; --accent:#4aa8e8; --pass:#2e9d6a; --fail:#e0446a; --skip:#9aa1ad; color-scheme: light; }
+@media (prefers-color-scheme: dark) { :root { --bg:#16181c; --card:#1e2126; --text:#e6e8ec; --muted:#9198a5; --border:#2d3138; color-scheme: dark; } }
+* { box-sizing: border-box; }
+body { margin: 0; background: var(--bg); color: var(--text); font: 14px/1.5 system-ui, "Segoe UI", sans-serif; }
+header { position: sticky; top: 0; z-index: 5; background: var(--card); border-bottom: 1px solid var(--border); padding: 12px 20px; display: flex; gap: 16px; align-items: center; flex-wrap: wrap; }
+.logo { width: 34px; height: 34px; border-radius: 9px; display: grid; place-items: center; font: 700 16px "Segoe UI", sans-serif; color: #2a2f38; background: linear-gradient(135deg,#f7f8fa,#d9dce1 45%,#eef0f3 70%,#b4b9c1); box-shadow: inset 0 0 0 1.5px #9fd6ff; position: relative; }
+.logo::after { content: ""; position: absolute; right: 6px; bottom: 10px; width: 5px; height: 5px; border-radius: 50%; background: #5ab8f5; }
+h1 { font-size: 17px; margin: 0; }
+.sub { color: var(--muted); font-size: 12.5px; }
+.bar { flex: 1; min-width: 200px; }
+.track { height: 8px; border-radius: 8px; background: var(--border); overflow: hidden; display: flex; }
+.track i { display: block; height: 100%; transition: width .3s; }
+.counts { font-size: 12.5px; color: var(--muted); margin-top: 4px; }
+.actions { display: flex; gap: 8px; flex-wrap: wrap; }
+button { font: inherit; color: inherit; cursor: pointer; border: 1px solid var(--border); background: var(--card); border-radius: 8px; padding: 6px 12px; }
+button:hover { border-color: var(--accent); }
+button.primary { background: var(--accent); border-color: transparent; color: #fff; }
+main { max-width: 900px; margin: 0 auto; padding: 20px; }
+.meta { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 10px; margin-bottom: 18px; }
+.meta label { display: grid; gap: 4px; font-size: 12.5px; color: var(--muted); }
+input, textarea { font: inherit; color: inherit; background: var(--card); border: 1px solid var(--border); border-radius: 8px; padding: 7px 10px; }
+input:focus, textarea:focus { outline: none; border-color: var(--accent); }
+section { margin: 22px 0 8px; }
+section > h2 { font-size: 13px; text-transform: uppercase; letter-spacing: .6px; color: var(--muted); margin: 0 0 8px; }
+.step { background: var(--card); border: 1px solid var(--border); border-radius: 12px; padding: 12px 14px; margin-bottom: 8px; border-left: 4px solid var(--border); }
+.step.pass { border-left-color: var(--pass); } .step.fail { border-left-color: var(--fail); } .step.skip { border-left-color: var(--skip); }
+.step h3 { font-size: 14.5px; margin: 0 0 4px; }
+.how { color: var(--muted); margin: 0; }
+.expect { margin: 4px 0 8px; } .expect b { color: var(--accent); font-weight: 600; }
+.row { display: flex; gap: 6px; align-items: center; flex-wrap: wrap; }
+.row button[aria-pressed="true"].p { background: var(--pass); color: #fff; border-color: var(--pass); }
+.row button[aria-pressed="true"].f { background: var(--fail); color: #fff; border-color: var(--fail); }
+.row button[aria-pressed="true"].s { background: var(--skip); color: #fff; border-color: var(--skip); }
+.row input { flex: 1; min-width: 180px; }
+kbd { font: 12px ui-monospace, monospace; border: 1px solid var(--border); border-radius: 4px; padding: 1px 5px; }
+footer { color: var(--muted); font-size: 12px; text-align: center; padding: 30px 0; }
+.toast { position: fixed; bottom: 20px; left: 50%; transform: translateX(-50%); background: var(--text); color: var(--bg); padding: 8px 14px; border-radius: 8px; }
+</style>
+</head>
+<body>
+<header>
+  <span class="logo">Pt</span>
+  <div><h1>Platinum Reader test kit</h1><div class="sub">Work through each step, mark it, then send the report.</div></div>
+  <div class="bar"><div class="track"><i id="tp" style="background:var(--pass)"></i><i id="tf" style="background:var(--fail)"></i><i id="ts" style="background:var(--skip)"></i></div><div class="counts" id="counts"></div></div>
+  <div class="actions">
+    <button id="copy">Copy report</button>
+    <button id="json">Download JSON</button>
+    <button id="mail" class="primary">Send with Gmail</button>
+    <button id="reset" title="Clear all marks">Reset</button>
+  </div>
+</header>
+<main>
+  <div class="meta">
+    <label>Tester<input id="tester" placeholder="Your name"></label>
+    <label>Version tested<input id="version" placeholder="0.4.1-beta (see ⋮ → About)"></label>
+    <label>Windows / OS<input id="os" placeholder="Windows 11 25H2"></label>
+  </div>
+  <div id="steps"></div>
+</main>
+<footer>Platinum Reader · open source (AGPL-3.0) · results are saved in this browser until you press Reset.</footer>
+<script>
+const DEV = 'inzamam.im11@gmail.com'
+const S = [
+ ['Install and start', [
+  ['Installer choice', 'Run the setup .exe.', 'It asks “just me” or “all users (Program Files)”, shows the platinum sidebar, and finishes without errors.'],
+  ['Fast start, no splash', 'Open Platinum Reader from the Start menu.', 'The window appears right away with no splash screen.'],
+  ['Self-test', 'Press <kbd>F1</kbd> → Run self-test.', 'All checks finish within a few seconds; essential checks pass.'],
+ ]],
+ ['Opening files', [
+  ['Open a PDF', '<kbd>Ctrl+O</kbd> and pick a PDF, or double-click a PDF.', 'It opens in a tab, sharp at any zoom.'],
+  ['Other formats', 'Open an EPUB, MOBI, CBZ/CBR, DjVu, XPS, Markdown or CHM file.', 'Each one opens and pages render.'],
+  ['Drag and drop', 'Drag a file from Explorer onto the window.', 'A “Drop to open” frame appears, then the file opens.'],
+  ['Heavy document', 'Open a PDF with hundreds of pages and scroll fast.', 'Scrolling stays smooth; pages fill in quickly.'],
+ ]],
+ ['Tabs and windows', [
+  ['Several tabs', 'Open 3 files. Drag a tab to reorder it.', 'Tabs show titles; reordering works.'],
+  ['Split view', 'Right-click a tab → Split view.', 'Two documents side by side with a draggable divider.'],
+  ['New window', 'Right-click a tab → Open in new window.', 'The document moves to its own window.'],
+  ['Vertical tabs', 'Settings → Layout → Tab bar position: Left.', 'Tabs move to a left sidebar; switch back afterwards.'],
+ ]],
+ ['Reading', [
+  ['Page box', 'Click the page number, type 10, press Enter.', 'Jumps to page 10.'],
+  ['Zoom', 'Use − / + / the % menu / <kbd>Ctrl</kbd>+mouse wheel.', 'Zoom changes smoothly and stays sharp.'],
+  ['View modes', 'Try continuous, facing pages and single page.', 'Each mode lays out pages correctly.'],
+  ['Full screen', 'Press <kbd>F11</kbd>, then <kbd>Esc</kbd>.', 'Distraction-free single page, then back to normal.'],
+  ['Outline', 'Press <kbd>Ctrl+B</kbd> on a document with a table of contents.', 'Clicking an entry jumps there.'],
+ ]],
+ ['Find', [
+  ['Find text', '<kbd>Ctrl+F</kbd>, type a word.', 'Matches are highlighted; counter shows n / total.'],
+  ['Next / previous', 'Press <kbd>Enter</kbd>, <kbd>Shift+Enter</kbd> or the arrows.', 'Moves between matches, scrolling to each.'],
+  ['Match case', 'Toggle “Aa”.', 'Counts change to exact-case matches only.'],
+ ]],
+ ['Highlights and saving', [
+  ['Selection menu', 'Select some text.', 'A floating menu appears: 6 colors, eraser, copy, search, Ask AI.'],
+  ['Highlight', 'Pick a color.', 'Text is highlighted; the tab shows a blue “unsaved” dot.'],
+  ['Unhighlight', 'Select highlighted text → eraser.', 'The highlight disappears.'],
+  ['Save', 'Highlight again, press <kbd>Ctrl+S</kbd>.', '“Saved …” appears and the dot clears. Opening the PDF in another reader shows the highlight.'],
+  ['Save as', '<kbd>Ctrl+Shift+S</kbd>, choose a new name.', 'A new PDF is written; the tab now points to it.'],
+  ['Close prompt', 'Highlight, then close the tab without saving.', 'Asks Save / Don’t save / Cancel.'],
+ ]],
+ ['Hold to preview', [
+  ['In the app', 'Press and hold a tab or a Recent item for 3 s without moving.', 'A first-page card appears; it vanishes on release and the file does not open.'],
+  ['In File Explorer', 'With the app closed, hold a PDF in Explorer for 3 s.', 'The first-page card appears next to the pointer, gone on release.'],
+  ['On the desktop', 'Hold a PDF on the desktop for 3 s.', 'Same preview card.'],
+  ['Turn it off', 'Settings → Reading → turn off “…also in File Explorer”.', 'Within 5 s no Platinum Reader background process remains (Task Manager).'],
+ ]],
+ ['Windows integration', [
+  ['Default app', 'Settings → Make Platinum Reader the default… → choose it for PDF.', 'PDFs open in Platinum Reader on double-click.'],
+  ['File icons', 'Look at PDF/EPUB/MD files in Explorer after choosing defaults.', 'Each type shows its minimal icon with a colored label.'],
+  ['Single instance', 'With the app open, double-click another PDF.', 'It opens as a new tab in the same window.'],
+ ]],
+ ['Settings and look', [
+  ['Themes', 'Settings → Mode light/dark, try accents.', 'Colors change everywhere instantly.'],
+  ['Night pages', 'Dark mode + “Dark pages”.', 'Page colors invert for night reading.'],
+  ['History', '<kbd>Ctrl+H</kbd>, reopen a document.', 'It reopens at the page where you left off.'],
+  ['Print', '<kbd>Ctrl+P</kbd>.', 'The print dialog shows the document pages.'],
+ ]],
+ ['Help, updates, extensions', [
+  ['Send feedback', 'F1 → Send feedback → Send with Gmail.', 'Gmail opens addressed to the developer with subject “Needs Pt. Reader: …”.'],
+  ['Check for updates', '⋮ → Check for updates.', 'Says you are up to date, or offers the new version.'],
+  ['Pause updates', 'Settings → Updates → Pause for 7 days.', 'Shows the date until which checks are paused.'],
+  ['Extensions', '⋮ → Extensions → add examples/extensions/shout.js, restart.', 'A “Shout” button appears in the selection menu.'],
+  ['Developer mode', 'Settings → Developer mode → Performance overlay.', 'A live stats box appears bottom-left.'],
+ ]],
+ ['Easter eggs', [
+  ['11 clicks', 'About → click the developer name 11 times.', 'A random surprise plays (never the same twice in a row).'],
+  ['Release showdown', 'About → press and hold the Pt. icon for 3 s.', 'Emoji bursts for every release codename, with names.'],
+  ['Bunny chase', 'Type <kbd>h o p</kbd> anywhere outside a text box.', 'Bunnies hop across chasing carrots.'],
+  ['Buzz', 'Type <kbd>b u z z</kbd> anywhere outside a text box.', 'A bee swarm follows the pointer.'],
+ ]],
+ ['Uninstall', [
+  ['Clean uninstall', 'Settings → Apps → Platinum Reader → Uninstall.', 'App, icons and background helper are gone.'],
+ ]],
+]
+const KEY = 'pt-test-kit'
+let state = {}
+try { state = JSON.parse(localStorage.getItem(KEY) || '{}') } catch {}
+const save = () => { try { localStorage.setItem(KEY, JSON.stringify(state)) } catch {} }
+const $ = (id) => document.getElementById(id)
+for (const k of ['tester', 'version', 'os']) { $(k).value = state['_' + k] || ''; $(k).oninput = () => { state['_' + k] = $(k).value; save() } }
+
+const root = $('steps')
+S.forEach(([section, steps], si) => {
+  const sec = document.createElement('section')
+  sec.innerHTML = `<h2>${si + 1}. ${section}</h2>`
+  steps.forEach(([title, how, expect], i) => {
+    const id = `${si}.${i}`
+    const st = state[id] || {}
+    const el = document.createElement('div')
+    el.className = 'step ' + (st.r || '')
+    el.innerHTML = `<h3>${title}</h3><p class="how">${how}</p><p class="expect"><b>Expected:</b> ${expect}</p>
+      <div class="row"><button class="p">Pass</button><button class="f">Fail</button><button class="s">Skip</button><input placeholder="Notes (what you saw)"></div>`
+    const [p, f, s] = el.querySelectorAll('button'), note = el.querySelector('input')
+    const mark = (r) => { st.r = st.r === r ? '' : r; state[id] = st; save(); paint() }
+    const paint = () => { el.className = 'step ' + (st.r || ''); p.ariaPressed = st.r === 'pass'; f.ariaPressed = st.r === 'fail'; s.ariaPressed = st.r === 'skip'; progress() }
+    p.onclick = () => mark('pass'); f.onclick = () => mark('fail'); s.onclick = () => mark('skip')
+    note.value = st.n || ''; note.oninput = () => { st.n = note.value; state[id] = st; save() }
+    paint()
+    sec.append(el)
+  })
+  root.append(sec)
+})
+
+function results() {
+  return S.flatMap(([section, steps], si) => steps.map(([title], i) => ({ section, step: title, result: (state[`${si}.${i}`] || {}).r || 'not tested', notes: (state[`${si}.${i}`] || {}).n || '' })))
+}
+function progress() {
+  const r = results(), n = r.length
+  const c = (k) => r.filter((x) => x.result === k).length
+  $('tp').style.width = c('pass') / n * 100 + '%'; $('tf').style.width = c('fail') / n * 100 + '%'; $('ts').style.width = c('skip') / n * 100 + '%'
+  $('counts').textContent = `${c('pass')} passed · ${c('fail')} failed · ${c('skip')} skipped · ${n - c('pass') - c('fail') - c('skip')} to go`
+}
+function text() {
+  const r = results()
+  const head = `Platinum Reader test report\nTester: ${$('tester').value || '-'} · Version: ${$('version').value || '-'} · OS: ${$('os').value || '-'} · ${new Date().toLocaleString()}\n`
+  const fails = r.filter((x) => x.result === 'fail')
+  const sum = `Passed ${r.filter((x) => x.result === 'pass').length}/${r.length}, failed ${fails.length}\n`
+  const lines = r.map((x) => `[${x.result.toUpperCase()}] ${x.section} › ${x.step}${x.notes ? ' — ' + x.notes : ''}`)
+  return head + sum + '\n' + lines.join('\n')
+}
+const toast = (m) => { const t = document.createElement('div'); t.className = 'toast'; t.textContent = m; document.body.append(t); setTimeout(() => t.remove(), 2200) }
+$('copy').onclick = async () => { await navigator.clipboard.writeText(text()); toast('Report copied') }
+$('json').onclick = () => {
+  const blob = new Blob([JSON.stringify({ tester: $('tester').value, version: $('version').value, os: $('os').value, date: new Date().toISOString(), results: results() }, null, 2)], { type: 'application/json' })
+  const a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = 'platinum-reader-test-report.json'; a.click()
+}
+$('mail').onclick = () => {
+  const r = results(), fails = r.filter((x) => x.result === 'fail').length
+  const su = `Needs Pt. Reader: Test kit ${fails ? fails + ' failed' : 'passed'}`
+  // Gmail URLs get long; keep the body to the essentials.
+  const body = text().slice(0, 6000)
+  window.open(`https://mail.google.com/mail/?view=cm&fs=1&to=${encodeURIComponent(DEV)}&su=${encodeURIComponent(su)}&body=${encodeURIComponent(body)}`, '_blank')
+}
+$('reset').onclick = () => { if (confirm('Clear all marks and notes?')) { state = {}; save(); location.reload() } }
+</script>
+</body>
+</html>

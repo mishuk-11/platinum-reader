@@ -1,5 +1,5 @@
 import { invoke } from '@tauri-apps/api/core'
-import type { OpenResult, PageText } from './types'
+import type { OpenResult, PageText, HighlightSpec } from './types'
 
 const worker = new Worker(new URL('./worker.ts', import.meta.url), { type: 'module' })
 const pending = new Map<number, { resolve: (v: any) => void; reject: (e: Error) => void }>()
@@ -32,6 +32,7 @@ export class Doc implements OpenResult {
   sizes: [number, number][] = []
   outline: OpenResult['outline'] = []
   meta: Record<string, string> = {}
+  editable = false
   private texts = new Map<number, Promise<PageText>>()
   private constructor(public id: number, public path: string) {}
 
@@ -71,6 +72,18 @@ export class Doc implements OpenResult {
     let t = this.texts.get(index)
     if (!t) this.texts.set(index, (t = call<PageText>('text', [this.id, index])))
     return t
+  }
+
+  addHighlights(items: HighlightSpec[]) {
+    return call<number>('addHighlights', [this.id, items])
+  }
+
+  removeHighlightsIn(page: number, rects: number[][]) {
+    return call<number>('removeHighlightsIn', [this.id, page, rects])
+  }
+
+  save() {
+    return call<ArrayBuffer>('save', [this.id])
   }
 
   close() {

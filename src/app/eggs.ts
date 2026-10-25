@@ -1,7 +1,7 @@
 // Easter eggs: clicking the developer's name 11 times plays a random one.
 import { h } from './ui'
 
-interface P { x: number; y: number; vx: number; vy: number; ay: number; rot: number; vr: number; s: number; e: string; age: number; life: number; bounce?: boolean }
+interface P { x: number; y: number; vx: number; vy: number; ay: number; rot: number; vr: number; s: number; e: string; age: number; life: number; bounce?: boolean; step?: (p: P, t: number) => void }
 
 const sprites = new Map<string, HTMLCanvasElement>()
 function sprite(e: string) {
@@ -21,7 +21,7 @@ function sprite(e: string) {
 }
 
 /** Runs a full-screen emoji particle animation. `spawn` is called every frame with the elapsed ms. */
-function particles(duration: number, spawn: (t: number) => P[]) {
+function particles(duration: number, spawn: (t: number) => P[], overlay?: (ctx: CanvasRenderingContext2D, t: number) => void) {
   const cv = h('canvas', { class: 'egg-canvas', 'aria-hidden': 'true' })
   document.body.append(cv)
   const dpr = devicePixelRatio
@@ -37,6 +37,7 @@ function particles(duration: number, spawn: (t: number) => P[]) {
     ctx.setTransform(1, 0, 0, 1, 0, 0)
     ctx.clearRect(0, 0, cv.width, cv.height)
     for (const p of ps) {
+      p.step?.(p, t)
       p.vy += p.ay
       p.x += p.vx
       p.y += p.vy
@@ -48,6 +49,7 @@ function particles(duration: number, spawn: (t: number) => P[]) {
       ctx.rotate(p.rot)
       ctx.drawImage(sprite(p.e), -p.s / 2, -p.s / 2, p.s, p.s)
     }
+    if (overlay) { ctx.setTransform(dpr, 0, 0, dpr, 0, 0); ctx.globalAlpha = 1; overlay(ctx, t) }
     ps = ps.filter((p) => p.age < p.life && p.y < innerHeight + 80 && p.x > -120 && p.x < innerWidth + 120)
     if (t < duration || ps.length) requestAnimationFrame(frame)
     else cv.remove()
@@ -103,6 +105,100 @@ const EGGS: Record<string, Egg> = {
     }])
   },
 }
+
+// ---------- codename eggs ----------
+
+/** Every release's codename and emoji. Add a line here with each new release. */
+export const RELEASES: { version: string; name: string; emoji: string[] }[] = [
+  { version: '0.1.0', name: 'Cherry Lava', emoji: ['🍒'] },
+  { version: '0.2.0', name: 'FairyRocket', emoji: ['🧚', '🚀'] },
+  { version: '0.3.0', name: 'Carrotbunny', emoji: ['🥕', '🐰'] },
+  { version: '0.4.0', name: 'Honeybee', emoji: ['🐝', '🍯'] },
+]
+
+const reduced = () => matchMedia('(prefers-reduced-motion: reduce)').matches
+
+/** Hold the About icon 3 s (or the developer name 5 s): a 5-second showdown, one burst per release with its codename. */
+export function releaseShowdown(from: HTMLElement) {
+  if (reduced()) return
+  const r = from.getBoundingClientRect()
+  const slot = 5000 / RELEASES.length
+  particles(5000, (t) => {
+    const rel = RELEASES[Math.min(RELEASES.length - 1, Math.floor(t / slot))]
+    return Array.from({ length: 3 }, () => ({
+      ...base(rnd(r.left, r.right), r.top + r.height / 2, pick(rel.emoji)),
+      vx: rnd(-9, 9), vy: rnd(-14, -4), ay: 0.28, rot: rnd(0, 6), vr: rnd(-0.15, 0.15), s: rnd(22, 42), life: 140,
+    }))
+  }, (ctx, t) => {
+    if (t >= 5000) return
+    const i = Math.min(RELEASES.length - 1, Math.floor(t / slot))
+    const k = (t % slot) / slot
+    ctx.globalAlpha = Math.sin(Math.PI * k)
+    ctx.font = '600 44px "Segoe UI", sans-serif'
+    ctx.textAlign = 'center'
+    ctx.fillStyle = '#5ab8f5'
+    ctx.fillText(`${RELEASES[i].emoji.join(' ')}  ${RELEASES[i].name}`, innerWidth / 2, innerHeight * 0.28)
+    ctx.font = '500 16px "Segoe UI", sans-serif'
+    ctx.fillStyle = '#9aa3ad'
+    ctx.fillText(`v${RELEASES[i].version}`, innerWidth / 2, innerHeight * 0.28 + 30)
+  })
+}
+
+/** Type "hop": bunnies hop across the screen chasing carrots (Carrotbunny brought hold-to-preview). */
+export function bunnyChase() {
+  if (reduced()) return
+  const floor = innerHeight - 40
+  let n = 0
+  particles(3200, () => {
+    if (n++ % 9) return []
+    const y = floor - rnd(0, innerHeight * 0.5)
+    // Hop around a fixed baseline; vy stays 0 so the engine doesn't drift y.
+    const hop = (amp: number, speed: number, phase: number) => (p: P, t: number) => { p.y = y - Math.abs(Math.sin((t + phase) / speed)) * amp }
+    const vx = rnd(4, 6)
+    return [
+      { ...base(-40, y, '🥕'), vx, s: 26, life: 500, step: hop(18, 140, rnd(0, 900)) },
+      { ...base(-110, y, '🐰'), vx, s: 40, life: 520, step: hop(46, 180, rnd(0, 900)) },
+    ]
+  })
+}
+
+/** Type "buzz": honeybees swarm after the pointer for a few seconds (Honeybee brought help and feedback). */
+let pointer = { x: innerWidth / 2, y: innerHeight / 2 }
+addEventListener('pointermove', (e) => { pointer = { x: e.clientX, y: e.clientY } }, { passive: true })
+export function beeSwarm() {
+  if (reduced()) return
+  let spawned = false
+  particles(6000, () => {
+    if (spawned) return []
+    spawned = true
+    return Array.from({ length: 22 }, () => ({
+      ...base(rnd(0, innerWidth), rnd(0, innerHeight), '🐝'), s: rnd(20, 30), life: 400,
+      step: (p: P) => {
+        p.vx = p.vx * 0.92 + (pointer.x - p.x) * 0.006 + rnd(-0.9, 0.9)
+        p.vy = p.vy * 0.92 + (pointer.y - p.y) * 0.006 + rnd(-0.9, 0.9)
+        p.rot = Math.atan2(p.vy, p.vx) * 0.25
+      },
+    }))
+  })
+}
+
+/** Calls `fn` when `el` is pressed and held still for `ms`. */
+export function onHold(el: HTMLElement, ms: number, fn: () => void) {
+  let timer = 0, x = 0, y = 0
+  el.addEventListener('pointerdown', (e) => { x = e.clientX; y = e.clientY; timer = window.setTimeout(fn, ms) })
+  el.addEventListener('pointermove', (e) => { if (Math.hypot(e.clientX - x, e.clientY - y) > 6) clearTimeout(timer) })
+  for (const ev of ['pointerup', 'pointerleave', 'pointercancel']) el.addEventListener(ev, () => clearTimeout(timer))
+}
+
+// Words typed anywhere outside a text field.
+const WORDS: Record<string, () => void> = { buzz: beeSwarm, hop: bunnyChase }
+let typed = ''
+addEventListener('keydown', (e) => {
+  if ((e.target as HTMLElement).matches?.('input, textarea, select') || e.key.length !== 1) return
+  typed = (typed + e.key.toLowerCase()).slice(-6)
+  const word = Object.keys(WORDS).find((w) => typed.endsWith(w))
+  if (word) { typed = ''; WORDS[word]() }
+})
 
 let last = ''
 /** Plays a random easter egg, never the same one twice in a row. */

@@ -27,7 +27,7 @@ export const isOn = (ext: string) =>
 /** The API object every extension receives. */
 function api(ext: string, getViewer: () => Viewer | undefined) {
   return {
-    version: '0.4.0-beta',
+    version: '0.4.1-beta',
     addSelectionAction: (a: { label: string; icon?: IconNode; run: (text: string) => void }) => registry.selection.push({ ...a, ext }),
     addMenuItem: (a: { label: string; run: () => void }) => registry.menu.push({ ...a, ext }),
     onDocumentOpen: (run: OpenHook['run']) => registry.open.push({ ext, run }),

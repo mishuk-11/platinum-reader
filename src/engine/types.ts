@@ -13,4 +13,7 @@ export interface OpenResult {
   sizes: [number, number][]
   outline: OutlineItem[]
   meta: Record<string, string>
+  /** PDFs can store highlights and be saved */
+  editable: boolean
 }
+export interface HighlightSpec { page: number; rects: number[][]; color: string }

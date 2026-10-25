@@ -34,7 +34,8 @@ Platinum Reader uses the operating system's own web engine (via [Tauri](https://
 **Text**
 - Select text and copy it like on any web page
 - A floating menu appears over the selection: **6 highlight colors**, Copy, Search the web, **Ask AI** (ChatGPT, Claude, Perplexity or Google AI Mode)
-- Highlights are saved per file. Click one to copy its text or remove it.
+- **Unhighlight**: select highlighted text and click the eraser (also removes highlights already saved in the PDF), or click a highlight to remove it
+- **Save / Save as** (`Ctrl+S` / `Ctrl+Shift+S`): writes highlights into the PDF as real annotations other readers show; closing with unsaved changes asks first
 
 **Look and feel**
 - Light, dark or system mode, plus 8 accent themes (Platinum, Graphite, Ocean, Forest, Rose, Amber, Violet, Sepia)
@@ -178,6 +179,14 @@ src-tauri/           Rust: file reading, CLI args, single instance, CHM unpackin
   src/peek.rs        Explorer/desktop hold-to-preview helper (Windows)
 ```
 
+## Documentation
+
+- [Master manual (HTML)](docs/manual/master-manual.html) and [PDF manual](docs/manual/Platinum-Reader-Manual.pdf), with screenshots
+- [On-screen test kit](docs/test-kit.html): a standalone checklist of every feature with pass/fail, notes and a report you can send
+- [Command-line install](install-commands.txt)
+- [Code signing](docs/CODE-SIGNING.md): how to make Windows show “Inzamam Islam” as the publisher
+- Rebuild the PDF manual: `node docs/manual/build-pdf.mjs`. Regenerate installer art: `src-tauri/windows/make-installer-art.ps1`
+
 ## Known limits
 
 - **Explorer hold-to-preview** uses a small helper that starts when you sign in (only while the setting is on) and a system-wide mouse hook, so a few antivirus tools may ask about it. It finds the file through Explorer's own API; unusual views (search results, some network or cloud folders) may not show a preview.
@@ -190,6 +199,7 @@ src-tauri/           Rust: file reading, CLI args, single instance, CHM unpackin
 
 | Version | Codename |
 |---|---|
+| 0.4.1-beta | Honeybee |
 | 0.4.0-beta | Honeybee |
 | 0.3.0-beta | Carrotbunny |
 | 0.2.0 | FairyRocket (as Quire) |
