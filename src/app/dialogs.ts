@@ -11,8 +11,9 @@ import { playEgg } from './eggs'
 import { BUILTIN, userExtensions } from './extensions'
 import { copyDiagnostics, openDevtools, resetAllData } from './dev'
 import { updateSettings } from './updates'
+import { openDefaultApps } from './help'
 
-export const VERSION_NAME = 'Carrotbunny'
+export const VERSION_NAME = 'Honeybee'
 export const DEVELOPER = 'Inzamam Islam'
 export const GITHUB = 'https://github.com/mishuk-11'
 // Lucide 1.x dropped brand icons; this is its former GitHub glyph.
@@ -74,6 +75,7 @@ export function showSettings() {
     row('Default zoom', select('zoom', [['width', 'Fit width'], ['page', 'Fit page'], ['75', '75%'], ['100', '100%'], ['125', '125%'], ['150', '150%']])),
     row('Page gap', gap),
     row('Reopen tabs on launch', toggle('restoreTabs')),
+    navigator.userAgent.includes('Windows') ? row('Default app', h('button', { class: 'btn', onclick: openDefaultApps }, 'Make Platinum Reader the default…'), 'Windows asks you to confirm each file type; their icons appear once chosen') : null,
     row('Hold to preview', toggle('holdPreview', syncPeek), 'Press and hold a file for 3 s (no drag) to see its first page'),
     row('…also in File Explorer and desktop', toggle('holdPreviewExplorer', syncPeek), 'Windows only. Runs a tiny helper when you sign in'),
     h('h3', {}, 'Web'),
@@ -115,7 +117,7 @@ export async function showProperties(tab: Tab) {
 
 // ---------- about ----------
 export async function showAbout() {
-  const version = await getVersion().catch(() => '0.3.0-beta')
+  const version = await getVersion().catch(() => '0.4.0-beta')
   let clicks = 0
   const name = h('button', {
     class: 'dev-name', title: DEVELOPER,

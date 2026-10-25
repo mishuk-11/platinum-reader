@@ -56,6 +56,13 @@ export class Doc implements OpenResult {
     return doc
   }
 
+  /** Opens in-memory bytes; `name` only tells the engine the format (e.g. "x.html"). */
+  static async fromBytes(bytes: ArrayBuffer, name: string): Promise<Doc> {
+    const doc = new Doc(++seq, name)
+    Object.assign(doc, await call<OpenResult>('open', [doc.id, bytes, name], [bytes]))
+    return doc
+  }
+
   render(index: number, scale: number) {
     return call<ImageBitmap>('render', [this.id, index, scale])
   }

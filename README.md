@@ -56,8 +56,14 @@ Platinum Reader uses the operating system's own web engine (via [Tauri](https://
 - Update in the app (downloads, verifies the SHA-256 checksum, runs the installer), download the installer, or copy a terminal command
 - Pause: "Remind me in 7 days", skip a version, or turn automatic checks off
 
+**Help** (⋮ → Help, or `F1`)
+- User guide, keyboard shortcuts, check for updates
+- **Self-test**: checks the engine, text search, storage, install, default app, the Explorer preview helper and the update server, with a pass/warn/fail report
+- **Send feedback / Report a problem**: drafts an email to the developer with subject `Needs Pt. Reader: <topic>`, and saves a diagnostic report (no document contents) and your screenshot to a folder to attach
+
 **System**
 - Registers as an "Open with" app for every supported format, so it can be set as the default PDF reader
+- Minimal per-type file icons in Explorer (PDF, EPUB, MOBI, FB2, CBZ, CBR, DJVU, XPS, MD, CHM) instead of the app logo
 - Single instance: double-clicking another file opens it as a new tab in the running window
 - Drag and drop files onto the window
 - Print (`Ctrl+P`)
@@ -163,6 +169,7 @@ src/
   app/eggs.ts        a few surprises
   app/peek.ts        hold-to-preview card
   app/updates.ts     GitHub release check
+  app/help.ts        help menu, self-test, feedback
   peek-window.ts     preview window for the Explorer helper
   engine/worker.ts   MuPDF + djvu-rs in a Web Worker
   engine/client.ts   talks to the worker
@@ -183,6 +190,7 @@ src-tauri/           Rust: file reading, CLI args, single instance, CHM unpackin
 
 | Version | Codename |
 |---|---|
+| 0.4.0-beta | Honeybee |
 | 0.3.0-beta | Carrotbunny |
 | 0.2.0 | FairyRocket (as Quire) |
 | 0.1.0 | Cherry Lava (as Quire) |

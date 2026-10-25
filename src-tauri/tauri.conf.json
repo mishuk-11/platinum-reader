@@ -1,7 +1,7 @@
 {
   "$schema": "https://schema.tauri.app/config/2",
   "productName": "Platinum Reader",
-  "version": "0.3.0-beta",
+  "version": "0.4.0-beta",
   "identifier": "io.github.mishuk11.platinumreader",
   "build": {
     "beforeDevCommand": "npm run dev",
@@ -31,6 +31,7 @@
     "active": true,
     "targets": ["nsis", "deb", "rpm", "appimage", "dmg", "app"],
     "category": "Productivity",
+    "resources": { "filetypes/*.ico": "filetypes/" },
     "shortDescription": "Ultra-lightweight document reader",
     "longDescription": "Platinum Reader is a fast, open-source reader for PDF, EPUB, MOBI, CBZ/CBR, DjVu, XPS, Markdown and CHM.",
     "copyright": "© 2026 Inzamam Islam — AGPL-3.0",

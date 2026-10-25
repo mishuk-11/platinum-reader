@@ -11,12 +11,16 @@ pub const SUPPORTED: &[&str] = &[
 ];
 
 #[cfg(windows)]
-pub use win::{run_helper, set_enabled};
+pub use win::{run_helper, set_enabled, status};
 
 #[cfg(not(windows))]
 pub fn set_enabled(_enabled: bool) {}
 #[cfg(not(windows))]
 pub fn run_helper() {}
+#[cfg(not(windows))]
+pub fn status() -> serde_json::Value {
+    serde_json::json!({ "supported": false })
+}
 
 #[cfg(windows)]
 mod win {
@@ -30,7 +34,7 @@ mod win {
     use windows::Win32::System::Com::*;
     use windows::Win32::System::LibraryLoader::GetModuleHandleW;
     use windows::Win32::System::Registry::*;
-    use windows::Win32::System::Threading::CreateMutexW;
+    use windows::Win32::System::Threading::{CreateMutexW, OpenMutexW, SYNCHRONIZATION_SYNCHRONIZE};
     use windows::Win32::System::Variant::VARIANT;
     use windows::Win32::UI::Shell::*;
     use windows::Win32::UI::WindowsAndMessaging::*;
@@ -74,6 +78,28 @@ mod win {
         if enabled {
             use std::os::windows::process::CommandExt;
             let _ = std::process::Command::new(exe).arg(HELPER_ARG).creation_flags(0x0800_0000).spawn();
+        }
+    }
+
+    /// For the self-test and diagnostic report.
+    pub fn status() -> serde_json::Value {
+        unsafe {
+            let running = OpenMutexW(SYNCHRONIZATION_SYNCHRONIZE, false, w!("Local\\PlatinumReaderPeekHelper")).is_ok();
+            let mut buf = [0u16; 1024];
+            let mut len = (buf.len() * 2) as u32;
+            let run_cmd = RegGetValueW(HKEY_CURRENT_USER, RUN_KEY, RUN_VALUE, RRF_RT_REG_SZ, None, Some(buf.as_mut_ptr() as _), Some(&mut len))
+                .is_ok()
+                .then(|| String::from_utf16_lossy(&buf[..(len as usize / 2).saturating_sub(1)]));
+            let mut pbuf = [0u16; 256];
+            let mut plen = (pbuf.len() * 2) as u32;
+            let pdf_default = RegGetValueW(
+                HKEY_CURRENT_USER,
+                w!("Software\\Microsoft\\Windows\\CurrentVersion\\Explorer\\FileExts\\.pdf\\UserChoice"),
+                w!("ProgId"), RRF_RT_REG_SZ, None, Some(pbuf.as_mut_ptr() as _), Some(&mut plen),
+            )
+            .is_ok()
+            .then(|| String::from_utf16_lossy(&pbuf[..(plen as usize / 2).saturating_sub(1)]));
+            serde_json::json!({ "supported": true, "helperRunning": running, "startupCommand": run_cmd, "pdfDefault": pdf_default })
         }
     }
 

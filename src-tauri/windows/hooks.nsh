@@ -40,6 +40,17 @@
   !insertmacro PR_ASSOC "md" "PlatinumReader.md"
   !insertmacro PR_ASSOC "markdown" "PlatinumReader.md"
   !insertmacro PR_ASSOC "chm" "PlatinumReader.chm"
+  ; Per-type document icons (PDF, EPUB, MD, ...) instead of the app logo.
+  WriteRegStr SHCTX "Software\Classes\PlatinumReader.pdf\DefaultIcon" "" "$INSTDIR\filetypes\pdf.ico"
+  WriteRegStr SHCTX "Software\Classes\PlatinumReader.epub\DefaultIcon" "" "$INSTDIR\filetypes\epub.ico"
+  WriteRegStr SHCTX "Software\Classes\PlatinumReader.mobi\DefaultIcon" "" "$INSTDIR\filetypes\mobi.ico"
+  WriteRegStr SHCTX "Software\Classes\PlatinumReader.fb2\DefaultIcon" "" "$INSTDIR\filetypes\fb2.ico"
+  WriteRegStr SHCTX "Software\Classes\PlatinumReader.cbz\DefaultIcon" "" "$INSTDIR\filetypes\cbz.ico"
+  WriteRegStr SHCTX "Software\Classes\PlatinumReader.cbr\DefaultIcon" "" "$INSTDIR\filetypes\cbr.ico"
+  WriteRegStr SHCTX "Software\Classes\PlatinumReader.djvu\DefaultIcon" "" "$INSTDIR\filetypes\djvu.ico"
+  WriteRegStr SHCTX "Software\Classes\PlatinumReader.xps\DefaultIcon" "" "$INSTDIR\filetypes\xps.ico"
+  WriteRegStr SHCTX "Software\Classes\PlatinumReader.md\DefaultIcon" "" "$INSTDIR\filetypes\md.ico"
+  WriteRegStr SHCTX "Software\Classes\PlatinumReader.chm\DefaultIcon" "" "$INSTDIR\filetypes\chm.ico"
   WriteRegStr SHCTX "Software\RegisteredApplications" "Platinum Reader" "Software\PlatinumReader\Capabilities"
   ; Tell Explorer that file associations changed (SHCNE_ASSOCCHANGED).
   System::Call 'shell32::SHChangeNotify(i 0x08000000, i 0, p 0, p 0)'

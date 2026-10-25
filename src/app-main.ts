@@ -15,6 +15,7 @@ import { Viewer } from './app/viewer'
 import { loadExtensions } from './app/extensions'
 import { applyDev } from './app/dev'
 import { initUpdates } from './app/updates'
+import { showHelp } from './app/help'
 
 // Read before the first render, which saves the (still empty) tab list.
 const lastSession = session.get()
@@ -38,6 +39,7 @@ addEventListener('keydown', (e) => {
   const run = (fn: () => unknown) => { e.preventDefault(); fn() }
 
   if (e.key === 'F11') return run(() => toggleFullscreen())
+  if (e.key === 'F1') return run(showHelp)
   if (e.key === 'Escape' && isFullscreen()) return run(() => toggleFullscreen(false))
   if (mod) {
     if (key === 'o') return run(() => openDialog())

@@ -262,6 +262,24 @@ body.dropping .workspace::after { content: "Drop to open"; position: absolute; i
 .recent-x { opacity: 0; margin-right: 4px; }
 .recent li:hover .recent-x { opacity: .7; }
 
+/* ---------- help, self-test, feedback ---------- */
+.help-list { display: grid; gap: 2px; }
+.help-item { display: flex; align-items: center; gap: 12px; padding: 10px; border: 0; border-radius: 8px; background: none; text-align: left; }
+.help-item:hover { background: var(--hover); }
+.help-item > svg { color: var(--accent); flex: none; }
+.help-item span { display: grid; }
+.help-item small { color: var(--muted); }
+.selftest { list-style: none; margin: 8px 0 0; padding: 0; display: grid; gap: 4px; }
+.selftest li { display: grid; grid-template-columns: 20px 190px 1fr; align-items: center; gap: 8px; padding: 8px 10px; border-radius: 8px; background: var(--bg); }
+.selftest li.pass svg { color: #2e9d6a; }
+.selftest li.warn svg { color: #d88a12; }
+.selftest li.fail svg { color: #e0446a; }
+.selftest li span { color: var(--muted); }
+.feedback-text { width: 100%; margin-top: 10px; padding: 10px; border: 1px solid var(--border); border-radius: 8px; background: var(--bg); resize: vertical; user-select: text; }
+.feedback-text:focus { outline: none; border-color: var(--accent); }
+.form-error { color: #e0446a; font-size: 12.5px; margin: 4px 0 0; min-height: 1em; }
+.shortcuts dt kbd { font-size: 12px; }
+
 /* ---------- updates ---------- */
 .update-notes { max-height: 220px; overflow: auto; white-space: pre-wrap; font: 12.5px/1.5 ui-monospace, Consolas, monospace; background: var(--bg); border: 1px solid var(--border); border-radius: 8px; padding: 10px; }
 .update-actions { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 12px; }

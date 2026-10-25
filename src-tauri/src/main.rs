@@ -78,6 +78,32 @@ fn run_installer(app: tauri::AppHandle, path: String) -> Result<(), String> {
     Ok(())
 }
 
+/// Facts for the self-test and the diagnostic report.
+#[tauri::command]
+fn system_info() -> serde_json::Value {
+    let exe = std::env::current_exe().map(|p| p.to_string_lossy().into_owned()).unwrap_or_default();
+    let program_files = std::env::var("ProgramFiles").map(|pf| exe.starts_with(&pf)).unwrap_or(false);
+    serde_json::json!({
+        "os": std::env::consts::OS, "arch": std::env::consts::ARCH, "exe": exe,
+        "allUsersInstall": program_files, "peek": peek::status(),
+    })
+}
+
+/// Saves the diagnostic report (and an optional screenshot) into a new folder for the user to attach.
+#[tauri::command]
+fn save_feedback(report: String, screenshot: Option<String>) -> Result<String, String> {
+    let stamp = std::time::SystemTime::now().duration_since(std::time::UNIX_EPOCH).unwrap().as_secs();
+    let dir = std::env::temp_dir().join(format!("platinum-reader-feedback-{stamp}"));
+    std::fs::create_dir_all(&dir).map_err(|e| e.to_string())?;
+    std::fs::write(dir.join("diagnostic-report.json"), report).map_err(|e| e.to_string())?;
+    if let Some(shot) = screenshot {
+        let src = PathBuf::from(&shot);
+        let name = src.file_name().map(|n| n.to_owned()).ok_or("bad screenshot path")?;
+        std::fs::copy(&src, dir.join(name)).map_err(|e| e.to_string())?;
+    }
+    Ok(dir.join("diagnostic-report.json").to_string_lossy().into_owned())
+}
+
 /// Turns the Explorer/desktop hold-to-preview helper on or off.
 #[tauri::command]
 fn set_peek_helper(enabled: bool) {
@@ -156,7 +182,7 @@ fn main() {
         .plugin(tauri_plugin_dialog::init())
         .plugin(tauri_plugin_opener::init())
         .manage(Pending(Mutex::new(file_args(&args, &cwd))))
-        .invoke_handler(tauri::generate_handler![read_file, file_size, pending_files, extract_chm, open_devtools, set_peek_helper, update_dir, download_update, run_installer])
+        .invoke_handler(tauri::generate_handler![read_file, file_size, pending_files, extract_chm, open_devtools, set_peek_helper, update_dir, download_update, run_installer, system_info, save_feedback])
         .build(tauri::generate_context!())
         .expect("error while running Platinum Reader")
         .run(|_app, _event| {

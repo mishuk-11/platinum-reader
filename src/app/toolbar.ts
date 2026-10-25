@@ -1,7 +1,7 @@
 // Toolbar under the tab bar. Always drives the focused pane's viewer.
 import {
   PanelLeft, FolderOpen, ZoomIn, ZoomOut, MoveHorizontal, ChevronLeft, ChevronRight, Search, Printer,
-  EllipsisVertical, RefreshCw, Rows3, BookOpenText, File, Maximize, Settings, History, Info, AppWindow, Columns2, FileSearch, Expand, X, Puzzle,
+  EllipsisVertical, RefreshCw, LifeBuoy, Rows3, BookOpenText, File, Maximize, Settings, History, Info, AppWindow, Columns2, FileSearch, Expand, X, Puzzle,
 } from 'lucide'
 import { WebviewWindow } from '@tauri-apps/api/webviewWindow'
 import { revealItemInDir } from '@tauri-apps/plugin-opener'
@@ -11,6 +11,7 @@ import { printDoc } from './print'
 import { showAbout, showExtensions, showHistory, showProperties, showSettings } from './dialogs'
 import { isOn, registry } from './extensions'
 import { check } from './updates'
+import { showHelp } from './help'
 import { toggleFullscreen } from './fullscreen'
 import { settings, setSetting, type ViewMode } from './store'
 import { button, h, icon, menu } from './ui'
@@ -96,6 +97,7 @@ function moreMenu(e: MouseEvent) {
     ...registry.menu.filter((m) => isOn(m.ext)).map((m) => ({ label: m.label, icon: Puzzle, action: () => { try { m.run() } catch (err) { console.error('extension', m.ext, err) } } })),
     { label: 'Extensions', icon: Puzzle, action: showExtensions },
     { label: 'Settings', icon: Settings, kbd: 'Ctrl+,', action: showSettings },
+    { label: 'Help', icon: LifeBuoy, kbd: 'F1', action: showHelp },
     { label: 'Check for updates', icon: RefreshCw, action: () => check(true) },
     { label: 'About Platinum Reader', icon: Info, action: showAbout },
     '-',
