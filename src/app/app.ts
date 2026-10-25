@@ -7,6 +7,7 @@ import { FileText, X, Plus, Columns2, AppWindow, Copy, FolderOpen, CopyPlus, XCi
 import { Doc, SUPPORTED } from '../engine/client'
 import { Viewer } from './viewer'
 import { runOpenHooks } from './extensions'
+import { holdPreview } from './peek'
 import { history, session, settings, onSettings } from './store'
 import { h, icon, menu, toast } from './ui'
 
@@ -34,7 +35,7 @@ const winControls = h('div', { class: 'win-controls' },
   h('button', { class: 'win-btn', title: 'Maximize', 'aria-label': 'Maximize', onclick: () => getCurrentWindow().toggleMaximize() }, icon(Square, 13)),
   h('button', { class: 'win-btn close', title: 'Close', 'aria-label': 'Close', onclick: () => getCurrentWindow().close() }, icon(X, 16)))
 export const tabbar = h('div', { class: 'tabbar' },
-  h('div', { class: 'brand', 'data-tauri-drag-region': true }, h('span', { class: 'logo' }), 'Quire'),
+  h('div', { class: 'brand', 'data-tauri-drag-region': true }, h('span', { class: 'logo' }), 'Platinum Reader'),
   tabList,
   h('button', { class: 'tab-new', title: 'Open file (Ctrl+O)', 'aria-label': 'Open file', onclick: () => openDialog() }, icon(Plus, 16)),
   h('div', { class: 'drag', 'data-tauri-drag-region': true }))
@@ -109,11 +110,12 @@ function tabButton(tab: Tab) {
   tab.viewer ? icon(FileText, 14) : h('span', { class: 'spinner' }),
   h('span', { class: 'tab-title' }, tab.title),
   h('button', { class: 'tab-close', title: 'Close (Ctrl+W)', 'aria-label': 'Close tab', onclick: (e: Event) => { e.stopPropagation(); closeTab(tab) } }, icon(X, 13)))
+  holdPreview(b, tab.path, () => tab.viewer?.doc)
   // Drag to reorder.
-  b.addEventListener('dragstart', (e) => e.dataTransfer!.setData('quire/tab', String(tab.id)))
+  b.addEventListener('dragstart', (e) => e.dataTransfer!.setData('platinum/tab', String(tab.id)))
   b.addEventListener('dragover', (e) => e.preventDefault())
   b.addEventListener('drop', (e) => {
-    const from = state.tabs.find((t) => String(t.id) === e.dataTransfer!.getData('quire/tab'))
+    const from = state.tabs.find((t) => String(t.id) === e.dataTransfer!.getData('platinum/tab'))
     if (!from || from === tab) return
     state.tabs.splice(state.tabs.indexOf(from), 1)
     state.tabs.splice(state.tabs.indexOf(tab), 0, from)
@@ -186,7 +188,7 @@ function moveToWindow(tab: Tab) {
   const label = 'w' + Date.now()
   const win = new WebviewWindow(label, {
     url: `index.html?open=${encodeURIComponent(tab.path)}&page=${page}`,
-    title: `${tab.title} — Quire`, width: 1000, height: 760, decorations: false, minWidth: 520, minHeight: 380,
+    title: `${tab.title} — Platinum Reader`, width: 1000, height: 760, decorations: false, minWidth: 520, minHeight: 380,
   })
   win.once('tauri://error', (e) => toast('Could not open window: ' + JSON.stringify(e.payload)))
   closeTab(tab)
@@ -215,7 +217,7 @@ export function render() {
   else right.replaceChildren()
   left.classList.toggle('focused', !!state.split && state.focus === 'left')
   right.classList.toggle('focused', !!state.split && state.focus === 'right')
-  document.title = (focusedTab()?.title ? focusedTab()!.title + ' — ' : '') + 'Quire'
+  document.title = (focusedTab()?.title ? focusedTab()!.title + ' — ' : '') + 'Platinum Reader'
   if (isMain) session.set(state.tabs.map((t) => t.path))
   emit()
 }
@@ -234,11 +236,12 @@ export function recentList(onPick?: () => void) {
   if (!list.length) return h('p', { class: 'muted' }, 'No recent documents yet.')
   const ul = h('ul', { class: 'recent' })
   for (const r of list) {
-    const li = h('li', {},
-      h('button', { class: 'recent-item', title: r.path, onclick: () => { onPick?.(); openFile(r.path) } },
+    const item = h('button', { class: 'recent-item', title: r.path, onclick: () => { onPick?.(); openFile(r.path) } },
         icon(BookOpen, 18),
         h('span', { class: 'recent-text' }, h('b', {}, r.title), h('small', {}, r.path)),
-        h('span', { class: 'recent-meta' }, `p. ${r.page + 1}${r.pages ? ' / ' + r.pages : ''}`, h('small', {}, ago(r.time)))),
+        h('span', { class: 'recent-meta' }, `p. ${r.page + 1}${r.pages ? ' / ' + r.pages : ''}`, h('small', {}, ago(r.time))))
+    holdPreview(item, r.path)
+    const li = h('li', {}, item,
       h('button', { class: 'tb-btn recent-x', title: 'Remove from history', 'aria-label': 'Remove from history', onclick: () => { history.remove(r.path); li.remove() } }, icon(X, 14)))
     ul.append(li)
   }
@@ -249,7 +252,7 @@ function home() {
   return h('div', { class: 'home' },
     h('div', { class: 'home-card' },
       h('div', { class: 'home-hero' }, h('span', { class: 'logo big' }),
-        h('div', {}, h('h1', {}, 'Quire'), h('p', { class: 'muted' }, 'PDF · EPUB · MOBI · CBZ/CBR · DjVu · XPS · Markdown · CHM'))),
+        h('div', {}, h('h1', {}, 'Platinum Reader'), h('p', { class: 'muted' }, 'PDF · EPUB · MOBI · CBZ/CBR · DjVu · XPS · Markdown · CHM'))),
       h('button', { class: 'btn primary', onclick: () => openDialog() }, icon(FolderOpen, 17), 'Open document', h('kbd', {}, 'Ctrl+O')),
       h('p', { class: 'muted drop-hint' }, 'or drop files anywhere'),
       h('h3', {}, icon(Clock, 15), 'Recent'),

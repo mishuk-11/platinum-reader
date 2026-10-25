@@ -10,8 +10,9 @@ import { dialog, h, icon, toast } from './ui'
 import { playEgg } from './eggs'
 import { BUILTIN, userExtensions } from './extensions'
 import { copyDiagnostics, openDevtools, resetAllData } from './dev'
+import { updateSettings } from './updates'
 
-export const VERSION_NAME = 'FairyRocket'
+export const VERSION_NAME = 'Carrotbunny'
 export const DEVELOPER = 'Inzamam Islam'
 export const GITHUB = 'https://github.com/mishuk-11'
 // Lucide 1.x dropped brand icons; this is its former GitHub glyph.
@@ -36,6 +37,8 @@ function switchEl(checked: boolean, onchange: (on: boolean) => void) {
 }
 const row = (label: string, control: Node, hint?: string) =>
   h('label', { class: 'set-row' }, h('span', {}, label, hint ? h('small', {}, hint) : null), control)
+
+const syncPeek = () => invoke('set_peek_helper', { enabled: settings.holdPreview && settings.holdPreviewExplorer })
 
 export function showSettings() {
   const accents = h('div', { class: 'accents', role: 'radiogroup', 'aria-label': 'Accent theme' },
@@ -71,9 +74,13 @@ export function showSettings() {
     row('Default zoom', select('zoom', [['width', 'Fit width'], ['page', 'Fit page'], ['75', '75%'], ['100', '100%'], ['125', '125%'], ['150', '150%']])),
     row('Page gap', gap),
     row('Reopen tabs on launch', toggle('restoreTabs')),
+    row('Hold to preview', toggle('holdPreview', syncPeek), 'Press and hold a file for 3 s (no drag) to see its first page'),
+    row('…also in File Explorer and desktop', toggle('holdPreviewExplorer', syncPeek), 'Windows only. Runs a tiny helper when you sign in'),
     h('h3', {}, 'Web'),
     row('Ask AI with', select('ai', Object.entries(AI).map(([k, [l]]) => [k, l]))),
     row('Search with', select('search', Object.entries(SEARCH).map(([k, [l]]) => [k, l]))),
+    h('h3', {}, 'Updates'),
+    ...updateSettings(row, toggle('autoUpdate')),
     h('h3', {}, 'Extensions'),
     row('Manage extensions', h('button', { class: 'btn', onclick: () => { close(); showExtensions() } }, icon(Puzzle, 15), 'Open…')),
     h('h3', {}, 'Developer'),
@@ -108,7 +115,7 @@ export async function showProperties(tab: Tab) {
 
 // ---------- about ----------
 export async function showAbout() {
-  const version = await getVersion().catch(() => '0.2.0')
+  const version = await getVersion().catch(() => '0.3.0-beta')
   let clicks = 0
   const name = h('button', {
     class: 'dev-name', title: DEVELOPER,
@@ -116,7 +123,7 @@ export async function showAbout() {
   }, DEVELOPER)
   dialog('About', h('div', { class: 'about' },
     h('span', { class: 'logo big' }),
-    h('h1', {}, 'Quire'),
+    h('h1', {}, 'Platinum Reader'),
     h('p', { class: 'version' }, `Version ${version} · “${VERSION_NAME}”`),
     h('p', { class: 'muted' }, 'An ultra-lightweight, open-source reader for PDF, EPUB, MOBI, CBZ/CBR, DjVu, XPS, Markdown and CHM.'),
     h('div', { class: 'dev' }, h('small', { class: 'muted' }, 'Developed by'), name),
@@ -135,8 +142,8 @@ export function showExtensions() {
       h('h3', {}, 'Installed'),
       users.length ? h('div', {}, ...users.map((u) => row(u.name,
         h('span', { class: 'ext-actions' },
-          switchEl(u.enabled, (on) => { userExtensions.save(users.map((x) => x.id === u.id ? { ...x, enabled: on } : x)); toast('Restart Quire to apply') }),
-          h('button', { class: 'tb-btn', title: 'Remove', 'aria-label': `Remove ${u.name}`, onclick: () => { userExtensions.save(users.filter((x) => x.id !== u.id)); render(); toast('Removed. Restart Quire to unload it.') } }, icon(Trash2, 15))),
+          switchEl(u.enabled, (on) => { userExtensions.save(users.map((x) => x.id === u.id ? { ...x, enabled: on } : x)); toast('Restart Platinum Reader to apply') }),
+          h('button', { class: 'tb-btn', title: 'Remove', 'aria-label': `Remove ${u.name}`, onclick: () => { userExtensions.save(users.filter((x) => x.id !== u.id)); render(); toast('Removed. Restart Platinum Reader to unload it.') } }, icon(Trash2, 15))),
         'Your extension'))) : h('p', { class: 'muted' }, 'No extensions installed yet.'),
     )
   }
@@ -147,13 +154,13 @@ export function showExtensions() {
 }
 
 async function addExtension(done: () => void) {
-  const path = await openPicker({ filters: [{ name: 'Quire extension', extensions: ['js', 'mjs'] }] })
+  const path = await openPicker({ filters: [{ name: 'Platinum Reader extension', extensions: ['js', 'mjs'] }] })
   if (!path) return
   const name = path.split(/[\\/]/).pop()!.replace(/\.m?js$/, '')
-  if (!(await ask(`"${name}" will run with full access to Quire. Install it only if you trust where it came from.`, { title: 'Install extension?', kind: 'warning' }))) return
+  if (!(await ask(`"${name}" will run with full access to Platinum Reader. Install it only if you trust where it came from.`, { title: 'Install extension?', kind: 'warning' }))) return
   const code = new TextDecoder().decode(await invoke<ArrayBuffer>('read_file', { path }))
   const list = userExtensions.list().filter((x) => x.name !== name)
   userExtensions.save([...list, { id: 'user:' + name, name, code, enabled: true }])
   done()
-  toast(`Installed "${name}". Restart Quire to load it.`, 4000)
+  toast(`Installed "${name}". Restart Platinum Reader to load it.`, 4000)
 }

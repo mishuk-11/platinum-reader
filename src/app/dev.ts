@@ -37,7 +37,7 @@ export const openDevtools = () => invoke('open_devtools').catch((e) => toast('De
 
 export async function copyDiagnostics() {
   const info = {
-    app: 'Quire', version: await getVersion().catch(() => '?'), userAgent: navigator.userAgent,
+    app: 'Platinum Reader', version: await getVersion().catch(() => '?'), userAgent: navigator.userAgent,
     dpr: devicePixelRatio, screen: `${screen.width}x${screen.height}`, tabs: state.tabs.map((t) => t.path.split(/[\\/]/).pop()),
     stats, settings,
   }
@@ -46,7 +46,7 @@ export async function copyDiagnostics() {
 }
 
 export async function resetAllData() {
-  if (!(await ask('Delete all settings, history, highlights and extensions? This cannot be undone.', { title: 'Reset Quire', kind: 'warning' }))) return
+  if (!(await ask('Delete all settings, history, highlights and extensions? This cannot be undone.', { title: 'Reset Platinum Reader', kind: 'warning' }))) return
   localStorage.clear()
   location.reload()
 }

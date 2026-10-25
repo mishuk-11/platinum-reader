@@ -1,8 +1,8 @@
-# Writing Quire extensions
+# Writing Platinum Reader extensions
 
-An extension is a single JavaScript module (`.js` or `.mjs`) whose default export is a function. Quire calls it once at startup with an API object.
+An extension is a single JavaScript module (`.js` or `.mjs`) whose default export is a function. Platinum Reader calls it once at startup with an API object.
 
-Install one from **⋮ → Extensions → Add extension (.js)…**, then restart Quire.
+Install one from **⋮ → Extensions → Add extension (.js)…**, then restart Platinum Reader.
 
 > Extensions run with full access to the app, like a browser extension. Only install ones you trust.
 
@@ -10,21 +10,21 @@ Install one from **⋮ → Extensions → Add extension (.js)…**, then restart
 
 ```js
 // shout.js — adds a selection action and a menu item
-export default function (quire) {
-  quire.addSelectionAction({
+export default function (reader) {
+  reader.addSelectionAction({
     label: 'Shout',
-    run: (text) => quire.toast(text.toUpperCase()),
+    run: (text) => reader.toast(text.toUpperCase()),
   })
 
-  quire.addMenuItem({
+  reader.addMenuItem({
     label: 'Current page',
     run: () => {
-      const v = quire.activeViewer()
-      quire.toast(v ? `Page ${v.current + 1} of ${v.doc.pages}` : 'No document open')
+      const v = reader.activeViewer()
+      reader.toast(v ? `Page ${v.current + 1} of ${v.doc.pages}` : 'No document open')
     },
   })
 
-  quire.onDocumentOpen((viewer, info) => {
+  reader.onDocumentOpen((viewer, info) => {
     console.log('Opened', info.title, info.pages, 'pages')
   })
 }
@@ -36,7 +36,7 @@ A ready-to-install copy is in [examples/extensions/shout.js](examples/extensions
 
 | Member | Description |
 |---|---|
-| `version` | Quire version string |
+| `version` | Platinum Reader version string |
 | `addSelectionAction({ label, run(text) })` | Adds a button to the floating menu that appears over selected text |
 | `addMenuItem({ label, run() })` | Adds an item to the ⋮ menu |
 | `onDocumentOpen((viewer, { path, pages, title }) => {})` | Runs every time a document finishes opening |

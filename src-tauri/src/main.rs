@@ -1,5 +1,7 @@
 #![cfg_attr(not(debug_assertions), windows_subsystem = "windows")]
 
+mod peek;
+
 use std::path::{Path, PathBuf};
 use std::sync::Mutex;
 use tauri::{Emitter, Manager};
@@ -31,6 +33,57 @@ fn file_size(path: String) -> u64 {
     std::fs::metadata(path).map(|m| m.len()).unwrap_or(0)
 }
 
+fn update_dir_path() -> PathBuf {
+    std::env::temp_dir().join("platinum-reader-update")
+}
+
+#[tauri::command]
+fn update_dir() -> String {
+    update_dir_path().to_string_lossy().into_owned()
+}
+
+/// Downloads a release asset with the OS's own curl (built into Windows 10+, Linux, macOS).
+#[tauri::command]
+async fn download_update(url: String, name: String) -> Result<String, String> {
+    // Only GitHub release assets, and a plain file name: these come from the network.
+    if !url.starts_with("https://github.com/") || name.is_empty() || name.contains(['/', '\\', ':']) || name.starts_with('.') {
+        return Err("refused: unexpected download URL or file name".into());
+    }
+    let dir = update_dir_path();
+    std::fs::create_dir_all(&dir).map_err(|e| e.to_string())?;
+    let out = dir.join(&name);
+    let mut cmd = std::process::Command::new("curl");
+    cmd.args(["-fsSL", "--retry", "2", "-o"]).arg(&out).arg(&url);
+    #[cfg(windows)]
+    {
+        use std::os::windows::process::CommandExt;
+        cmd.creation_flags(0x0800_0000);
+    }
+    let status = tauri::async_runtime::spawn_blocking(move || cmd.status()).await.map_err(|e| e.to_string())?.map_err(|e| e.to_string())?;
+    if !status.success() {
+        return Err(format!("download failed ({status})"));
+    }
+    Ok(out.to_string_lossy().into_owned())
+}
+
+/// Starts a downloaded installer and closes the app so files can be replaced.
+#[tauri::command]
+fn run_installer(app: tauri::AppHandle, path: String) -> Result<(), String> {
+    let p = PathBuf::from(&path);
+    if p.parent() != Some(update_dir_path().as_path()) || p.extension().and_then(|e| e.to_str()) != Some("exe") {
+        return Err("refused: not a downloaded installer".into());
+    }
+    std::process::Command::new(&p).spawn().map_err(|e| e.to_string())?;
+    app.exit(0);
+    Ok(())
+}
+
+/// Turns the Explorer/desktop hold-to-preview helper on or off.
+#[tauri::command]
+fn set_peek_helper(enabled: bool) {
+    peek::set_enabled(enabled);
+}
+
 #[tauri::command]
 fn open_devtools(window: tauri::WebviewWindow) {
     window.open_devtools();
@@ -45,7 +98,7 @@ fn pending_files(state: tauri::State<Pending>) -> Vec<String> {
 #[tauri::command]
 fn extract_chm(path: String) -> Result<(String, Vec<String>), String> {
     let stamp = std::time::SystemTime::now().duration_since(std::time::UNIX_EPOCH).unwrap().as_millis();
-    let out = std::env::temp_dir().join(format!("quire-chm-{stamp}"));
+    let out = std::env::temp_dir().join(format!("platinum-chm-{stamp}"));
     std::fs::create_dir_all(&out).map_err(|e| e.to_string())?;
 
     #[cfg(windows)]
@@ -86,6 +139,9 @@ fn walk(root: &Path, dir: &Path) -> Vec<String> {
 
 fn main() {
     let args: Vec<String> = std::env::args().collect();
+    if args.iter().any(|a| a == peek::HELPER_ARG) {
+        return peek::run_helper();
+    }
     let cwd = std::env::current_dir().map(|p| p.to_string_lossy().into_owned()).unwrap_or_default();
 
     tauri::Builder::default()
@@ -100,9 +156,9 @@ fn main() {
         .plugin(tauri_plugin_dialog::init())
         .plugin(tauri_plugin_opener::init())
         .manage(Pending(Mutex::new(file_args(&args, &cwd))))
-        .invoke_handler(tauri::generate_handler![read_file, file_size, pending_files, extract_chm, open_devtools])
+        .invoke_handler(tauri::generate_handler![read_file, file_size, pending_files, extract_chm, open_devtools, set_peek_helper, update_dir, download_update, run_installer])
         .build(tauri::generate_context!())
-        .expect("error while running Quire")
+        .expect("error while running Platinum Reader")
         .run(|_app, _event| {
             // macOS delivers "Open with" files as an event instead of argv.
             #[cfg(target_os = "macos")]

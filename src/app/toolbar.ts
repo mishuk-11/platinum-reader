@@ -1,7 +1,7 @@
 // Toolbar under the tab bar. Always drives the focused pane's viewer.
 import {
   PanelLeft, FolderOpen, ZoomIn, ZoomOut, MoveHorizontal, ChevronLeft, ChevronRight, Search, Printer,
-  EllipsisVertical, Rows3, BookOpenText, File, Maximize, Settings, History, Info, AppWindow, Columns2, FileSearch, Expand, X, Puzzle,
+  EllipsisVertical, RefreshCw, Rows3, BookOpenText, File, Maximize, Settings, History, Info, AppWindow, Columns2, FileSearch, Expand, X, Puzzle,
 } from 'lucide'
 import { WebviewWindow } from '@tauri-apps/api/webviewWindow'
 import { revealItemInDir } from '@tauri-apps/plugin-opener'
@@ -10,6 +10,7 @@ import { openFind } from './find'
 import { printDoc } from './print'
 import { showAbout, showExtensions, showHistory, showProperties, showSettings } from './dialogs'
 import { isOn, registry } from './extensions'
+import { check } from './updates'
 import { toggleFullscreen } from './fullscreen'
 import { settings, setSetting, type ViewMode } from './store'
 import { button, h, icon, menu } from './ui'
@@ -95,14 +96,15 @@ function moreMenu(e: MouseEvent) {
     ...registry.menu.filter((m) => isOn(m.ext)).map((m) => ({ label: m.label, icon: Puzzle, action: () => { try { m.run() } catch (err) { console.error('extension', m.ext, err) } } })),
     { label: 'Extensions', icon: Puzzle, action: showExtensions },
     { label: 'Settings', icon: Settings, kbd: 'Ctrl+,', action: showSettings },
-    { label: 'About Quire', icon: Info, action: showAbout },
+    { label: 'Check for updates', icon: RefreshCw, action: () => check(true) },
+    { label: 'About Platinum Reader', icon: Info, action: showAbout },
     '-',
     { label: 'Close tab', icon: X, kbd: 'Ctrl+W', disabled: !tab, action: () => tab && closeTab(tab) },
   ], r.right - 240, r.bottom + 4)
 }
 
 export function newWindow() {
-  new WebviewWindow('w' + Date.now(), { url: 'index.html', title: 'Quire', width: 1100, height: 780, decorations: false, minWidth: 520, minHeight: 380 })
+  new WebviewWindow('w' + Date.now(), { url: 'index.html', title: 'Platinum Reader', width: 1100, height: 780, decorations: false, minWidth: 520, minHeight: 380 })
 }
 
 export function toggleSidebar(force?: boolean) {

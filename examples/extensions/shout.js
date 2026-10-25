@@ -1,19 +1,19 @@
-// Example Quire extension. Install: ⋮ → Extensions → Add extension (.js)…
-export default function (quire) {
-  quire.addSelectionAction({
+// Example Platinum Reader extension. Install: ⋮ → Extensions → Add extension (.js)…
+export default function (reader) {
+  reader.addSelectionAction({
     label: 'Shout',
-    run: (text) => quire.toast(text.toUpperCase()),
+    run: (text) => reader.toast(text.toUpperCase()),
   })
 
-  quire.addMenuItem({
+  reader.addMenuItem({
     label: 'Current page',
     run: () => {
-      const v = quire.activeViewer()
-      quire.toast(v ? `Page ${v.current + 1} of ${v.doc.pages}` : 'No document open')
+      const v = reader.activeViewer()
+      reader.toast(v ? `Page ${v.current + 1} of ${v.doc.pages}` : 'No document open')
     },
   })
 
-  quire.onDocumentOpen((viewer, info) => {
+  reader.onDocumentOpen((viewer, info) => {
     console.log('Opened', info.title, info.pages, 'pages')
   })
 }

@@ -1,8 +1,8 @@
 <p align="center">
-  <img src="app-icon.svg" width="96" alt="Quire logo">
+  <img src="app-icon.svg" width="96" alt="Platinum Reader logo">
 </p>
 
-<h1 align="center">Quire</h1>
+<h1 align="center">Platinum Reader</h1>
 
 <p align="center">
   An ultra-lightweight, open-source document reader for Windows, Linux and macOS.<br>
@@ -11,7 +11,7 @@
 
 ---
 
-Quire uses the operating system's own web engine (via [Tauri](https://tauri.app)) instead of bundling a browser, so the installer is small and it starts instantly. There is no splash screen. Rendering runs in a background worker, so very large documents don't freeze the window.
+Platinum Reader uses the operating system's own web engine (via [Tauri](https://tauri.app)) instead of bundling a browser, so the installer is small and it starts instantly. There is no splash screen. Rendering runs in a background worker, so very large documents don't freeze the window.
 
 ## Features
 
@@ -25,6 +25,7 @@ Quire uses the operating system's own web engine (via [Tauri](https://tauri.app)
 - Outline (table of contents) sidebar
 - Clickable internal and external links
 - History: recent files reopen at the page where you stopped; open tabs come back on the next launch
+- **Hold to preview:** press and hold a file for 3 seconds without moving to see its first page; let go and it disappears. Works on tabs and the Recent/History lists, and on Windows also in **File Explorer and on the desktop**. Can be turned off in Settings.
 
 **Find**
 - `Ctrl+F`: match case, `n / total` counter, previous/next buttons (`Enter` / `Shift+Enter`)
@@ -36,7 +37,7 @@ Quire uses the operating system's own web engine (via [Tauri](https://tauri.app)
 - Highlights are saved per file. Click one to copy its text or remove it.
 
 **Look and feel**
-- Light, dark or system mode, plus 7 accent themes (Graphite, Ocean, Forest, Rose, Amber, Violet, Sepia)
+- Light, dark or system mode, plus 8 accent themes (Platinum, Graphite, Ocean, Forest, Rose, Amber, Violet, Sepia)
 - Optional inverted pages for night reading
 - Comfortable or compact density, toolbar labels, page gap
 - Minimal single-color icons ([Lucide](https://lucide.dev))
@@ -49,6 +50,11 @@ Quire uses the operating system's own web engine (via [Tauri](https://tauri.app)
 - Performance overlay (render times, queue, canvases, memory)
 - Show the hidden text layer, render quality, parallel page renders
 - Open DevTools, copy diagnostics, reset all app data
+
+**Updates**
+- Checks GitHub Releases on launch and once a day, and always asks first
+- Update in the app (downloads, verifies the SHA-256 checksum, runs the installer), download the installer, or copy a terminal command
+- Pause: "Remind me in 7 days", skip a version, or turn automatic checks off
 
 **System**
 - Registers as an "Open with" app for every supported format, so it can be set as the default PDF reader
@@ -77,15 +83,26 @@ Quire uses the operating system's own web engine (via [Tauri](https://tauri.app)
 
 ## Install
 
-Download the installer for your system from [Releases](../../releases):
+**One command** (downloads the newest release and verifies its checksum):
 
-- **Windows:** `Quire_x.y.z_x64-setup.exe` (about 6 MB, no admin rights needed) or the `.msi`
+```powershell
+# Windows (PowerShell)
+irm https://raw.githubusercontent.com/mishuk-11/platinum-reader/main/install.ps1 | iex
+```
+```bash
+# Linux / macOS
+curl -fsSL https://raw.githubusercontent.com/mishuk-11/platinum-reader/main/install.sh | sh
+```
+
+**Or** download the installer for your system from [Releases](../../releases):
+
+- **Windows:** `Platinum Reader_x.y.z_x64-setup.exe` (about 6 MB). The installer asks: **just for me** (no admin rights) or **all users in Program Files** (admin).
 - **Linux:** `.AppImage`, `.deb` or `.rpm`
 - **macOS:** `.dmg`
 
-### Make Quire the default PDF app (Windows)
-Right-click any PDF → **Properties** → **Opens with: Change…** → choose **Quire** → OK.
-Or go to *Settings → Apps → Default apps → Quire* and pick the file types.
+### Make Platinum Reader the default PDF app (Windows)
+Right-click any PDF → **Properties** → **Opens with: Change…** → choose **Platinum Reader** → OK.
+Or go to *Settings → Apps → Default apps → Platinum Reader* and pick the file types.
 
 ## Build from source
 
@@ -144,13 +161,19 @@ src/
   app/extensions.ts  extension API, built-in extensions
   app/dev.ts         developer mode tools
   app/eggs.ts        a few surprises
+  app/peek.ts        hold-to-preview card
+  app/updates.ts     GitHub release check
+  peek-window.ts     preview window for the Explorer helper
   engine/worker.ts   MuPDF + djvu-rs in a Web Worker
   engine/client.ts   talks to the worker
   engine/formats.ts  CBR, Markdown, CHM converters
-src-tauri/           Rust: file reading, CLI args, single instance, CHM unpacking
+src-tauri/           Rust: file reading, CLI args, single instance, CHM unpacking, updates
+  src/peek.rs        Explorer/desktop hold-to-preview helper (Windows)
 ```
 
 ## Known limits
+
+- **Explorer hold-to-preview** uses a small helper that starts when you sign in (only while the setting is on) and a system-wide mouse hook, so a few antivirus tools may ask about it. It finds the file through Explorer's own API; unusual views (search results, some network or cloud folders) may not show a preview.
 
 - DjVu pages render, but their hidden text layer is not extracted yet, so DjVu text can't be searched or selected.
 - Printing renders every page first, so very long documents take a while to prepare.
@@ -160,8 +183,9 @@ src-tauri/           Rust: file reading, CLI args, single instance, CHM unpackin
 
 | Version | Codename |
 |---|---|
-| 0.2.0 | FairyRocket |
-| 0.1.0 | Cherry Lava |
+| 0.3.0-beta | Carrotbunny |
+| 0.2.0 | FairyRocket (as Quire) |
+| 0.1.0 | Cherry Lava (as Quire) |
 
 ## License
 

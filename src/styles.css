@@ -72,12 +72,15 @@ kbd { font: 11px/1 ui-monospace, monospace; color: var(--muted); padding: 2px 5p
 .pad { padding: 12px; }
 
 .logo {
-  display: inline-block; width: 18px; height: 18px; flex: none;
-  background: var(--accent);
-  -webkit-mask: url("./logo.svg") center / contain no-repeat;
-  mask: url("./logo.svg") center / contain no-repeat;
+  position: relative; display: inline-grid; place-items: center; flex: none;
+  width: 18px; height: 18px; border-radius: 5px;
+  background: linear-gradient(135deg, #f7f8fa, #d9dce1 45%, #eef0f3 70%, #b4b9c1);
+  box-shadow: inset 0 0 0 1px #9fd6ff;
+  font: 700 9.5px/1 "Segoe UI", Inter, Helvetica, Arial, sans-serif; letter-spacing: -.3px; color: #2a2f38;
 }
-.logo.big { width: 56px; height: 56px; }
+.logo::before { content: "Pt"; margin-right: .3em; }
+.logo::after { content: ""; position: absolute; right: .3em; bottom: .55em; width: .3em; height: .3em; border-radius: 50%; background: #5ab8f5; }
+.logo.big { width: 56px; height: 56px; border-radius: 14px; font-size: 27px; box-shadow: inset 0 0 0 2px #9fd6ff, 0 4px 16px rgba(90, 184, 245, .25); }
 
 /* ---------- tab bar ---------- */
 .tabbar {
@@ -141,7 +144,6 @@ kbd { font: 11px/1 ui-monospace, monospace; color: var(--muted); padding: 2px 5p
   overflow: hidden;
 }
 :root[data-tabs="left"] .toolbar { background: var(--bg); }
-:root[data-tabs="left"] .toolbar::before { content: ""; width: 18px; height: 18px; margin: 0 8px 0 4px; flex: none; background: var(--accent); -webkit-mask: url("./logo.svg") center / contain no-repeat; mask: url("./logo.svg") center / contain no-repeat; }
 .toolbar > :not(.drag):not(.win-controls) { flex: none; }
 .toolbar .win-controls { align-self: stretch; }
 .tb-btn {
@@ -259,6 +261,26 @@ body.dropping .workspace::after { content: "Drop to open"; position: absolute; i
 .recent-meta { display: grid; text-align: right; font-variant-numeric: tabular-nums; flex: none; }
 .recent-x { opacity: 0; margin-right: 4px; }
 .recent li:hover .recent-x { opacity: .7; }
+
+/* ---------- updates ---------- */
+.update-notes { max-height: 220px; overflow: auto; white-space: pre-wrap; font: 12.5px/1.5 ui-monospace, Consolas, monospace; background: var(--bg); border: 1px solid var(--border); border-radius: 8px; padding: 10px; }
+.update-actions { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 12px; }
+.update-progress { height: 6px; border-radius: 6px; background: var(--surface-2); overflow: hidden; margin-top: 10px; }
+.update-progress i { display: block; height: 100%; width: 0; background: var(--accent); transition: width .25s; }
+
+/* ---------- hold-to-preview ---------- */
+.peek-layer { position: fixed; inset: 0; pointer-events: none; z-index: 130; }
+.peek-card {
+  position: absolute; width: 296px; padding: 8px; border-radius: 14px;
+  background: var(--surface); border: 1px solid color-mix(in srgb, var(--accent) 45%, var(--border));
+  box-shadow: var(--shadow), 0 0 0 4px color-mix(in srgb, var(--accent) 12%, transparent);
+  animation: pop .14s ease-out;
+}
+.peek-card canvas { display: block; border-radius: 6px; background: #fff; }
+.peek-card.loading { display: grid; place-items: center; height: 200px; }
+.peek-info { display: grid; gap: 1px; padding: 8px 4px 2px; }
+.peek-info b { font-weight: 600; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.peek-info small { color: var(--muted); }
 
 /* ---------- find bar ---------- */
 .findbar {
@@ -382,3 +404,8 @@ body.egg-roll { animation: egg-roll 1.3s cubic-bezier(.5, 0, .3, 1); }
   .find-input { width: 140px; }
 }
 @media (prefers-reduced-motion: reduce) { * { animation: none !important; transition: none !important; } }
+
+/* hold-to-preview window (Explorer/desktop helper) */
+:root.peek-mode, :root.peek-mode body { background: transparent; }
+:root.peek-mode body { display: block; padding: 8px; overflow: hidden; }
+:root.peek-mode .peek-card { position: static; }

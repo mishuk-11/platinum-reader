@@ -1,10 +1,10 @@
 [package]
-name = "quire"
-version = "0.2.0"
-description = "Quire — ultra-lightweight open-source document reader"
+name = "platinum-reader"
+version = "0.3.0-beta"
+description = "Platinum Reader — ultra-lightweight open-source document reader"
 authors = ["Inzamam Islam"]
 license = "AGPL-3.0-or-later"
-repository = "https://github.com/mishuk-11/quire"
+repository = "https://github.com/mishuk-11/platinum-reader"
 edition = "2021"
 
 [build-dependencies]
@@ -17,6 +17,20 @@ tauri-plugin-opener = "2"
 tauri-plugin-single-instance = "2"
 serde = { version = "1", features = ["derive"] }
 serde_json = "1"
+
+[target.'cfg(windows)'.dependencies]
+windows = { version = "0.62", features = [
+  "Win32_Foundation",
+  "Win32_Security",
+  "Win32_System_Com",
+  "Win32_System_LibraryLoader",
+  "Win32_System_Ole",
+  "Win32_System_Registry",
+  "Win32_System_Threading",
+  "Win32_System_Variant",
+  "Win32_UI_Shell",
+  "Win32_UI_WindowsAndMessaging",
+] }
 
 [profile.release]
 codegen-units = 1

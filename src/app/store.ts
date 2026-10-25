@@ -2,7 +2,7 @@
 
 export const defaults = {
   theme: 'system' as 'system' | 'light' | 'dark',
-  accent: 'graphite',
+  accent: 'platinum',
   tabs: 'top' as 'top' | 'left',
   density: 'comfortable' as 'comfortable' | 'compact',
   toolbarLabels: false,
@@ -14,6 +14,11 @@ export const defaults = {
   restoreTabs: true,
   ai: 'chatgpt',
   search: 'google',
+  holdPreview: true,
+  holdPreviewExplorer: true,
+  autoUpdate: true,
+  updatePausedUntil: 0,
+  skippedVersion: '',
   // developer
   devMode: false,
   devOverlay: false,
@@ -27,7 +32,7 @@ export type ViewMode = 'continuous' | 'facing' | 'single'
 export type Settings = typeof defaults
 
 export const ACCENTS: Record<string, string> = {
-  graphite: '#6a7591', ocean: '#2f7bd9', forest: '#2e9d6a', rose: '#e0446a',
+  platinum: '#4aa8e8', graphite: '#6a7591', ocean: '#2f7bd9', forest: '#2e9d6a', rose: '#e0446a',
   amber: '#d88a12', violet: '#7c5ce0', sepia: '#a0703c',
 }
 
@@ -75,7 +80,7 @@ export function applyTheme() {
   root.dataset.invert = String(settings.invertPages && dark)
   root.dataset.extProgress = String(!!settings.extensions.progress)
   root.dataset.devtext = String(settings.devMode && settings.devTextLayer)
-  root.style.setProperty('--accent', ACCENTS[settings.accent] ?? ACCENTS.graphite)
+  root.style.setProperty('--accent', ACCENTS[settings.accent] ?? ACCENTS.platinum)
   root.style.setProperty('--page-gap', settings.pageGap + 'px')
 }
 matchMedia('(prefers-color-scheme: dark)').addEventListener('change', applyTheme)

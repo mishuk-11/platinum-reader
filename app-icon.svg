@@ -1,15 +1,18 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1024 1024">
   <defs>
-    <linearGradient id="g" x1="0" y1="0" x2="1" y2="1">
-      <stop offset="0" stop-color="#3a4256"/>
-      <stop offset="1" stop-color="#1c2130"/>
+    <linearGradient id="metal" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#f7f8fa"/>
+      <stop offset="0.45" stop-color="#d9dce1"/>
+      <stop offset="0.7" stop-color="#eef0f3"/>
+      <stop offset="1" stop-color="#b4b9c1"/>
+    </linearGradient>
+    <linearGradient id="ice" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#e8f6ff"/>
+      <stop offset="1" stop-color="#7cc8ff"/>
     </linearGradient>
   </defs>
-  <rect x="64" y="64" width="896" height="896" rx="200" fill="url(#g)"/>
-  <g transform="translate(160 160) scale(29.33)" fill="none" stroke="#ffffff" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
-    <path d="M14 2.5H7a2 2 0 0 0-2 2v15a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V7.5z"/>
-    <path d="M14 2.5v5h5"/>
-    <circle cx="11.6" cy="13.6" r="3.1" stroke="#ff5a6e"/>
-    <path d="m13.8 15.8 2.2 2.2" stroke="#ff5a6e"/>
-  </g>
+  <rect x="64" y="64" width="896" height="896" rx="210" fill="url(#metal)"/>
+  <rect x="80" y="80" width="864" height="864" rx="196" fill="none" stroke="url(#ice)" stroke-width="22" opacity="0.9"/>
+  <text x="470" y="655" text-anchor="middle" font-family="Segoe UI, Inter, Helvetica, Arial, sans-serif" font-weight="700" font-size="440" letter-spacing="-12" fill="#2a2f38">Pt</text>
+  <circle cx="770" cy="625" r="42" fill="#5ab8f5"/>
 </svg>

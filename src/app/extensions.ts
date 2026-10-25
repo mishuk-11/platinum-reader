@@ -27,7 +27,7 @@ export const isOn = (ext: string) =>
 /** The API object every extension receives. */
 function api(ext: string, getViewer: () => Viewer | undefined) {
   return {
-    version: '0.2.0',
+    version: '0.3.0-beta',
     addSelectionAction: (a: { label: string; icon?: IconNode; run: (text: string) => void }) => registry.selection.push({ ...a, ext }),
     addMenuItem: (a: { label: string; run: () => void }) => registry.menu.push({ ...a, ext }),
     onDocumentOpen: (run: OpenHook['run']) => registry.open.push({ ext, run }),
@@ -36,9 +36,9 @@ function api(ext: string, getViewer: () => Viewer | undefined) {
     toast,
   }
 }
-export type QuireAPI = ReturnType<typeof api>
+export type ReaderAPI = ReturnType<typeof api>
 
-export const BUILTIN: { id: string; name: string; description: string; setup: (q: QuireAPI) => void }[] = [
+export const BUILTIN: { id: string; name: string; description: string; setup: (q: ReaderAPI) => void }[] = [
   {
     id: 'translate', name: 'Translate', description: 'Translate selected text with Google Translate',
     setup: (q) => q.addSelectionAction({ label: 'Translate', icon: Languages, run: (t) => q.openUrl('https://translate.google.com/?sl=auto&tl=en&op=translate&text=' + encodeURIComponent(t)) }),

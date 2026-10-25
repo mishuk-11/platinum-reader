@@ -1,57 +1,69 @@
-; Registers Quire with Windows so it shows in "Open with" and Settings > Default apps.
-; Tauri writes the ProgIDs (Quire.pdf, ...); this adds the capability list Windows 10/11 needs.
+; Registers Platinum Reader with Windows so it shows in "Open with" and Settings > Default apps.
+; Tauri writes the ProgIDs (PlatinumReader.pdf, ...); this adds the capability list Windows 10/11 needs.
+; SHCTX is HKCU for "Just me" installs and HKLM for "All users" (Program Files) installs.
 ; Generated from tauri.conf.json fileAssociations; keep both in sync.
 
-!macro QUIRE_ASSOC EXT PROGID
-  WriteRegStr HKCU "Software\Classes\.${EXT}\OpenWithProgids" "${PROGID}" ""
-  WriteRegStr HKCU "Software\Quire\Capabilities\FileAssociations" ".${EXT}" "${PROGID}"
+!macro PR_ASSOC EXT PROGID
+  WriteRegStr SHCTX "Software\Classes\.${EXT}\OpenWithProgids" "${PROGID}" ""
+  WriteRegStr SHCTX "Software\PlatinumReader\Capabilities\FileAssociations" ".${EXT}" "${PROGID}"
 !macroend
 
-!macro QUIRE_UNASSOC EXT PROGID
-  DeleteRegValue HKCU "Software\Classes\.${EXT}\OpenWithProgids" "${PROGID}"
+!macro PR_UNASSOC EXT PROGID
+  DeleteRegValue SHCTX "Software\Classes\.${EXT}\OpenWithProgids" "${PROGID}"
+!macroend
+
+; The hold-to-preview helper runs from the same exe; stop it so files can be replaced.
+!macro PR_STOP_HELPER
+  nsExec::Exec 'taskkill /F /IM platinum-reader.exe'
+!macroend
+
+!macro NSIS_HOOK_PREINSTALL
+  !insertmacro PR_STOP_HELPER
 !macroend
 
 !macro NSIS_HOOK_POSTINSTALL
-  WriteRegStr HKCU "Software\Quire\Capabilities" "ApplicationName" "Quire"
-  WriteRegStr HKCU "Software\Quire\Capabilities" "ApplicationDescription" "Ultra-lightweight open-source document reader"
-  WriteRegStr HKCU "Software\Quire\Capabilities" "ApplicationIcon" "$INSTDIR\quire.exe,0"
-  !insertmacro QUIRE_ASSOC "pdf" "Quire.pdf"
-  !insertmacro QUIRE_ASSOC "epub" "Quire.epub"
-  !insertmacro QUIRE_ASSOC "mobi" "Quire.mobi"
-  !insertmacro QUIRE_ASSOC "azw" "Quire.mobi"
-  !insertmacro QUIRE_ASSOC "azw3" "Quire.mobi"
-  !insertmacro QUIRE_ASSOC "fb2" "Quire.fb2"
-  !insertmacro QUIRE_ASSOC "cbz" "Quire.cbz"
-  !insertmacro QUIRE_ASSOC "cbr" "Quire.cbr"
-  !insertmacro QUIRE_ASSOC "djvu" "Quire.djvu"
-  !insertmacro QUIRE_ASSOC "djv" "Quire.djvu"
-  !insertmacro QUIRE_ASSOC "xps" "Quire.xps"
-  !insertmacro QUIRE_ASSOC "oxps" "Quire.xps"
-  !insertmacro QUIRE_ASSOC "md" "Quire.md"
-  !insertmacro QUIRE_ASSOC "markdown" "Quire.md"
-  !insertmacro QUIRE_ASSOC "chm" "Quire.chm"
-  WriteRegStr HKCU "Software\RegisteredApplications" "Quire" "Software\Quire\Capabilities"
+  WriteRegStr SHCTX "Software\PlatinumReader\Capabilities" "ApplicationName" "Platinum Reader"
+  WriteRegStr SHCTX "Software\PlatinumReader\Capabilities" "ApplicationDescription" "Ultra-lightweight open-source document reader"
+  WriteRegStr SHCTX "Software\PlatinumReader\Capabilities" "ApplicationIcon" "$INSTDIR\platinum-reader.exe,0"
+  !insertmacro PR_ASSOC "pdf" "PlatinumReader.pdf"
+  !insertmacro PR_ASSOC "epub" "PlatinumReader.epub"
+  !insertmacro PR_ASSOC "mobi" "PlatinumReader.mobi"
+  !insertmacro PR_ASSOC "azw" "PlatinumReader.mobi"
+  !insertmacro PR_ASSOC "azw3" "PlatinumReader.mobi"
+  !insertmacro PR_ASSOC "fb2" "PlatinumReader.fb2"
+  !insertmacro PR_ASSOC "cbz" "PlatinumReader.cbz"
+  !insertmacro PR_ASSOC "cbr" "PlatinumReader.cbr"
+  !insertmacro PR_ASSOC "djvu" "PlatinumReader.djvu"
+  !insertmacro PR_ASSOC "djv" "PlatinumReader.djvu"
+  !insertmacro PR_ASSOC "xps" "PlatinumReader.xps"
+  !insertmacro PR_ASSOC "oxps" "PlatinumReader.xps"
+  !insertmacro PR_ASSOC "md" "PlatinumReader.md"
+  !insertmacro PR_ASSOC "markdown" "PlatinumReader.md"
+  !insertmacro PR_ASSOC "chm" "PlatinumReader.chm"
+  WriteRegStr SHCTX "Software\RegisteredApplications" "Platinum Reader" "Software\PlatinumReader\Capabilities"
   ; Tell Explorer that file associations changed (SHCNE_ASSOCCHANGED).
   System::Call 'shell32::SHChangeNotify(i 0x08000000, i 0, p 0, p 0)'
 !macroend
 
 !macro NSIS_HOOK_PREUNINSTALL
-  DeleteRegValue HKCU "Software\RegisteredApplications" "Quire"
-  DeleteRegKey HKCU "Software\Quire"
-  !insertmacro QUIRE_UNASSOC "pdf" "Quire.pdf"
-  !insertmacro QUIRE_UNASSOC "epub" "Quire.epub"
-  !insertmacro QUIRE_UNASSOC "mobi" "Quire.mobi"
-  !insertmacro QUIRE_UNASSOC "azw" "Quire.mobi"
-  !insertmacro QUIRE_UNASSOC "azw3" "Quire.mobi"
-  !insertmacro QUIRE_UNASSOC "fb2" "Quire.fb2"
-  !insertmacro QUIRE_UNASSOC "cbz" "Quire.cbz"
-  !insertmacro QUIRE_UNASSOC "cbr" "Quire.cbr"
-  !insertmacro QUIRE_UNASSOC "djvu" "Quire.djvu"
-  !insertmacro QUIRE_UNASSOC "djv" "Quire.djvu"
-  !insertmacro QUIRE_UNASSOC "xps" "Quire.xps"
-  !insertmacro QUIRE_UNASSOC "oxps" "Quire.xps"
-  !insertmacro QUIRE_UNASSOC "md" "Quire.md"
-  !insertmacro QUIRE_UNASSOC "markdown" "Quire.md"
-  !insertmacro QUIRE_UNASSOC "chm" "Quire.chm"
+  !insertmacro PR_STOP_HELPER
+  DeleteRegValue HKCU "Software\Microsoft\Windows\CurrentVersion\Run" "PlatinumReaderPeek"
+  DeleteRegValue SHCTX "Software\RegisteredApplications" "Platinum Reader"
+  DeleteRegKey SHCTX "Software\PlatinumReader"
+  !insertmacro PR_UNASSOC "pdf" "PlatinumReader.pdf"
+  !insertmacro PR_UNASSOC "epub" "PlatinumReader.epub"
+  !insertmacro PR_UNASSOC "mobi" "PlatinumReader.mobi"
+  !insertmacro PR_UNASSOC "azw" "PlatinumReader.mobi"
+  !insertmacro PR_UNASSOC "azw3" "PlatinumReader.mobi"
+  !insertmacro PR_UNASSOC "fb2" "PlatinumReader.fb2"
+  !insertmacro PR_UNASSOC "cbz" "PlatinumReader.cbz"
+  !insertmacro PR_UNASSOC "cbr" "PlatinumReader.cbr"
+  !insertmacro PR_UNASSOC "djvu" "PlatinumReader.djvu"
+  !insertmacro PR_UNASSOC "djv" "PlatinumReader.djvu"
+  !insertmacro PR_UNASSOC "xps" "PlatinumReader.xps"
+  !insertmacro PR_UNASSOC "oxps" "PlatinumReader.xps"
+  !insertmacro PR_UNASSOC "md" "PlatinumReader.md"
+  !insertmacro PR_UNASSOC "markdown" "PlatinumReader.md"
+  !insertmacro PR_UNASSOC "chm" "PlatinumReader.chm"
   System::Call 'shell32::SHChangeNotify(i 0x08000000, i 0, p 0, p 0)'
 !macroend

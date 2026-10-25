@@ -33,6 +33,15 @@ jobs:
 
       - uses: dtolnay/rust-toolchain@stable
 
+      # Windows builds use the open-source GNU toolchain (MinGW-w64 from the runner's MSYS2), not MSVC.
+      - name: Windows GNU toolchain
+        if: runner.os == 'Windows'
+        shell: bash
+        run: |
+          rustup toolchain install stable-x86_64-pc-windows-gnu
+          rustup default stable-x86_64-pc-windows-gnu
+          echo 'C:\msys64\mingw64\bin' >> "$GITHUB_PATH"
+
       - uses: swatinem/rust-cache@v2
         with:
           workspaces: src-tauri
@@ -45,5 +54,20 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
           tagName: ${{ github.ref_name }}
-          releaseName: Quire ${{ github.ref_name }}
+          releaseName: Platinum Reader ${{ github.ref_name }}
           releaseDraft: true
+          prerelease: ${{ contains(github.ref_name, '-') }}
+
+  # The in-app updater and install scripts verify downloads against this file.
+  checksums:
+    needs: build
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          gh release download "${{ github.ref_name }}" -R "${{ github.repository }}" -D assets
+          cd assets && sha256sum * > ../SHA256SUMS.txt && cd ..
+          gh release upload "${{ github.ref_name }}" SHA256SUMS.txt -R "${{ github.repository }}" --clobber
