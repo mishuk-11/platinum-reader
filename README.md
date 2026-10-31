@@ -181,11 +181,9 @@ src-tauri/           Rust: file reading, CLI args, single instance, CHM unpackin
 
 ## Documentation
 
-- [Master manual (HTML)](docs/manual/master-manual.html) and [PDF manual](docs/manual/Platinum-Reader-Manual.pdf), with screenshots
-- [On-screen test kit](docs/test-kit.html): a standalone checklist of every feature with pass/fail, notes and a report you can send
+- User manual (PDF, with screenshots) and on-screen test kit: attached to each [GitHub release](https://github.com/mishuk-11/platinum-reader/releases)
 - [Command-line install](install-commands.txt)
-- [Code signing](docs/CODE-SIGNING.md): how to make Windows show “Inzamam Islam” as the publisher
-- Rebuild the PDF manual: `node docs/manual/build-pdf.mjs`. Regenerate installer art: `src-tauri/windows/make-installer-art.ps1`
+- Regenerate installer art: `src-tauri/windows/make-installer-art.ps1`
 
 ## Known limits
 

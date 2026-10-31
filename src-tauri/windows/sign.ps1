@@ -1,7 +1,7 @@
 # Code-signs a Windows file (the app .exe and the setup .exe). Called by Tauri via bundle.windows.signCommand.
 # Without a certificate configured it does nothing, so unsigned builds still work.
 #
-# Configure ONE of these (see docs/CODE-SIGNING.md):
+# Configure ONE of these (see SuperDevTool\docs\CODE-SIGNING.md):
 #   CODESIGN_THUMBPRINT     certificate in the Windows certificate store (e.g. Certum SimplySign cloud certificate)
 #   CODESIGN_PFX + CODESIGN_PFX_PASSWORD   a .pfx file
 # Optional: CODESIGN_TIMESTAMP (default http://time.certum.pl) so signatures stay valid after the certificate expires.
