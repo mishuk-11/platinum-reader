@@ -9,11 +9,14 @@ jobs:
   build:
     strategy:
       fail-fast: false
-      matrix:
+            matrix:
         include:
           - os: windows-latest
+            args: ''
           - os: ubuntu-22.04
+            args: '--bundles deb,appimage'
           - os: macos-latest
+            args: ''
     runs-on: ${{ matrix.os }}
     permissions:
       contents: write
@@ -57,6 +60,7 @@ jobs:
           releaseName: Platinum Reader ${{ github.ref_name }}
           releaseDraft: true
           prerelease: ${{ contains(github.ref_name, '-') }}
+          args: ${{ matrix.args }}
 
   # The in-app updater and install scripts verify downloads against this file.
   checksums:
