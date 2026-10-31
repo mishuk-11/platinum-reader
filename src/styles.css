@@ -104,6 +104,7 @@ kbd { font: 11px/1 ui-monospace, monospace; color: var(--muted); padding: 2px 5p
   position: relative;
 }
 .tab:hover { background: var(--hover); color: var(--text); }
+.tab.dragging { opacity: .75; cursor: grabbing; }
 .tab.active { background: var(--surface); color: var(--text); box-shadow: 0 -1px 0 var(--border) inset; }
 .tab.active::after { content: ""; position: absolute; left: 10px; right: 10px; top: 0; height: 2px; border-radius: 2px; background: var(--accent); }
 .tab.split { color: var(--text); }
@@ -367,6 +368,9 @@ body.dropping .workspace::after { content: "Drop to open"; position: absolute; i
 .about .dev { display: grid; gap: 2px; margin: 12px 0 8px; }
 .dev-name { border: 0; background: none; font-size: 17px; font-weight: 600; padding: 2px 8px; border-radius: 6px; user-select: none; }
 .dev-name:hover { background: var(--hover); }
+.logo-stage { position: relative; isolation: isolate; display: inline-grid; place-items: center; }
+.logo-stage .logo { z-index: 1; }
+.logo-actor { position: absolute; left: 50%; top: 50%; translate: -50% -50%; z-index: 0; pointer-events: none; line-height: 1; user-select: none; }
 .egg-canvas { position: fixed; inset: 0; width: 100vw; height: 100vh; z-index: 200; pointer-events: none; }
 body.egg-roll { animation: egg-roll 1.3s cubic-bezier(.5, 0, .3, 1); }
 @keyframes egg-roll { to { transform: rotate(360deg); } }

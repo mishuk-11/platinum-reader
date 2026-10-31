@@ -1,4 +1,4 @@
-// Easter eggs: clicking the developer's name 11 times plays a random one.
+// Easter eggs: clicking the developer's name 11 times plays a random one; the About logo has its own (click or hold).
 import { h } from './ui'
 
 interface P { x: number; y: number; vx: number; vy: number; ay: number; rot: number; vr: number; s: number; e: string; age: number; life: number; bounce?: boolean; step?: (p: P, t: number) => void }
@@ -65,16 +65,16 @@ type Egg = (from: DOMRect) => void
 
 const EGGS: Record<string, Egg> = {
   /** Cherries burst out of the name and bounce on the floor. */
-  cherries: (r) => particles(1600, () => Array.from({ length: 3 }, () => ({
+  cherries: (r) => particles(900, () => Math.random() < 0.28 ? [{
     ...base(rnd(r.left, r.right), r.top + r.height / 2, '🍒'),
     vx: rnd(-6, 6), vy: rnd(-16, -7), ay: 0.35, rot: rnd(0, 6), vr: rnd(-0.2, 0.2), s: rnd(22, 40), life: 320, bounce: true,
-  }))),
+  }] : []),
 
   /** Books and pages rain down from the top, swaying. */
-  bookRain: () => particles(2600, () => Array.from({ length: 2 }, () => ({
+  bookRain: () => particles(2600, () => Math.random() < 0.15 ? [{
     ...base(rnd(0, innerWidth), -40, pick(['📚', '📖', '📕', '📗', '📘', '📄', '🔖'])),
     vx: rnd(-1, 1), vy: rnd(2, 5), ay: 0.04, rot: rnd(-0.4, 0.4), vr: rnd(-0.05, 0.05), s: rnd(24, 44), life: 420,
-  }))),
+  }] : []),
 
   /** A fairy rocket launches across the screen, leaving a sparkle trail. */
   fairyRocket: () =>
@@ -83,7 +83,7 @@ const EGGS: Record<string, Egg> = {
       const x = -60 + k * (innerWidth + 120)
       const y = innerHeight * 0.85 - Math.sin(k * Math.PI) * innerHeight * 0.65
       const out: P[] = [{ ...base(x, y, '🚀'), rot: Math.PI / 4 - Math.cos(k * Math.PI) * 0.9, s: 56, life: 2 }]
-      if (Math.random() < 0.7) out.push({ ...base(x - 20, y + 20, pick(['✨', '⭐', '🌟', '🧚'])), vx: rnd(-1.5, 0.5), vy: rnd(-0.5, 1.5), ay: 0.03, vr: rnd(-0.1, 0.1), s: rnd(14, 30), life: 70 })
+      if (Math.random() < 0.25) out.push({ ...base(x - 20, y + 20, pick(['✨', '⭐', '🌟', '🧚'])), vx: rnd(-1.5, 0.5), vy: rnd(-0.5, 1.5), ay: 0.03, vr: rnd(-0.1, 0.1), s: rnd(14, 30), life: 70 })
       return out
     }),
 
@@ -99,7 +99,7 @@ const EGGS: Record<string, Egg> = {
   disco: (r) => {
     document.documentElement.classList.add('egg-disco')
     setTimeout(() => document.documentElement.classList.remove('egg-disco'), 3200)
-    particles(3000, () => Math.random() < 0.5 ? [] : [{
+    particles(3000, () => Math.random() < 0.8 ? [] : [{
       ...base(rnd(r.left, r.right), r.top, pick(['🎵', '🎶', '🪩', '💃', '🕺'])),
       vx: rnd(-1.2, 1.2), vy: rnd(-3.5, -1.5), ay: -0.01, vr: rnd(-0.05, 0.05), s: rnd(20, 36), life: 160,
     }])
@@ -115,35 +115,10 @@ export const RELEASES: { version: string; name: string; emoji: string[] }[] = [
   { version: '0.3.0', name: 'Carrotbunny', emoji: ['🥕', '🐰'] },
   { version: '0.4.0', name: 'Honeybee', emoji: ['🐝', '🍯'] },
   { version: '0.4.2', name: 'BabyKoala', emoji: ['🐨', '🌿'] },
+  { version: '0.5.0', name: 'DonutDino', emoji: ['🍩', '🦖'] },
 ]
 
 const reduced = () => matchMedia('(prefers-reduced-motion: reduce)').matches
-
-/** Hold the About icon 3 s (or the developer name 5 s): a 5-second showdown, one burst per release with its codename. */
-export function releaseShowdown(from: HTMLElement) {
-  if (reduced()) return
-  const r = from.getBoundingClientRect()
-  const slot = 5000 / RELEASES.length
-  particles(5000, (t) => {
-    const rel = RELEASES[Math.min(RELEASES.length - 1, Math.floor(t / slot))]
-    return Array.from({ length: 3 }, () => ({
-      ...base(rnd(r.left, r.right), r.top + r.height / 2, pick(rel.emoji)),
-      vx: rnd(-9, 9), vy: rnd(-14, -4), ay: 0.28, rot: rnd(0, 6), vr: rnd(-0.15, 0.15), s: rnd(22, 42), life: 140,
-    }))
-  }, (ctx, t) => {
-    if (t >= 5000) return
-    const i = Math.min(RELEASES.length - 1, Math.floor(t / slot))
-    const k = (t % slot) / slot
-    ctx.globalAlpha = Math.sin(Math.PI * k)
-    ctx.font = '600 44px "Segoe UI", sans-serif'
-    ctx.textAlign = 'center'
-    ctx.fillStyle = '#5ab8f5'
-    ctx.fillText(`${RELEASES[i].emoji.join(' ')}  ${RELEASES[i].name}`, innerWidth / 2, innerHeight * 0.28)
-    ctx.font = '500 16px "Segoe UI", sans-serif'
-    ctx.fillStyle = '#9aa3ad'
-    ctx.fillText(`v${RELEASES[i].version}`, innerWidth / 2, innerHeight * 0.28 + 30)
-  })
-}
 
 /** Type "hop": bunnies hop across the screen chasing carrots (Carrotbunny brought hold-to-preview). */
 export function bunnyChase() {
@@ -151,7 +126,7 @@ export function bunnyChase() {
   const floor = innerHeight - 40
   let n = 0
   particles(3200, () => {
-    if (n++ % 9) return []
+    if (n++ % 24) return []
     const y = floor - rnd(0, innerHeight * 0.5)
     // Hop around a fixed baseline; vy stays 0 so the engine doesn't drift y.
     const hop = (amp: number, speed: number, phase: number) => (p: P, t: number) => { p.y = y - Math.abs(Math.sin((t + phase) / speed)) * amp }
@@ -172,7 +147,7 @@ export function beeSwarm() {
   particles(6000, () => {
     if (spawned) return []
     spawned = true
-    return Array.from({ length: 22 }, () => ({
+    return Array.from({ length: 8 }, () => ({
       ...base(rnd(0, innerWidth), rnd(0, innerHeight), '🐝'), s: rnd(20, 30), life: 400,
       step: (p: P) => {
         p.vx = p.vx * 0.92 + (pointer.x - p.x) * 0.006 + rnd(-0.9, 0.9)
@@ -183,12 +158,105 @@ export function beeSwarm() {
   })
 }
 
-/** Calls `fn` when `el` is pressed and held still for `ms`. */
+/** Calls `fn` when `el` is pressed and held still for `ms`; the click after a hold is swallowed. */
 export function onHold(el: HTMLElement, ms: number, fn: () => void) {
-  let timer = 0, x = 0, y = 0
-  el.addEventListener('pointerdown', (e) => { x = e.clientX; y = e.clientY; timer = window.setTimeout(fn, ms) })
-  el.addEventListener('pointermove', (e) => { if (Math.hypot(e.clientX - x, e.clientY - y) > 6) clearTimeout(timer) })
-  for (const ev of ['pointerup', 'pointerleave', 'pointercancel']) el.addEventListener(ev, () => clearTimeout(timer))
+  let timer = 0, x = 0, y = 0, held = false
+  const stop = () => clearTimeout(timer)
+  el.addEventListener('pointerdown', (e) => {
+    if (e.button) return
+    x = e.clientX; y = e.clientY; held = false
+    el.setPointerCapture(e.pointerId)
+    timer = window.setTimeout(() => { held = true; fn() }, ms)
+  })
+  el.addEventListener('pointermove', (e) => { if (Math.hypot(e.clientX - x, e.clientY - y) > 10) stop() })
+  for (const ev of ['pointerup', 'pointercancel', 'lostpointercapture']) el.addEventListener(ev, stop)
+  el.addEventListener('click', (e) => { if (held) { held = false; e.stopImmediatePropagation(); e.preventDefault() } }, true)
+}
+
+// ---------- About logo eggs ----------
+
+let busy = false
+/** Starts a logo egg of `ms` unless one is playing or the OS asks for reduced motion. */
+function claim(ms: number) {
+  if (busy || reduced()) return false
+  busy = true
+  setTimeout(() => { busy = false }, ms)
+  return true
+}
+
+/** An emoji behind the About logo; `play` removes it when its animation ends. */
+function actor(stage: HTMLElement, emoji: string, size = 26) {
+  const el = h('span', { class: 'logo-actor', 'aria-hidden': 'true', style: { fontSize: `${size}px` } }, emoji)
+  stage.append(el)
+  return el
+}
+const at = (x: number, y: number, extra = '') => ({ transform: `translate(${x}px, ${y}px) ${extra}` })
+const on = (k: Keyframe, offset: number): Keyframe => ({ ...k, offset })
+function play(el: HTMLElement, frames: Keyframe[], ms: number) {
+  el.animate(frames, { duration: ms, easing: 'ease-in-out', fill: 'both' }).onfinish = () => el.remove()
+}
+
+/** Click the logo: the current release's emoji peeks out from behind it, then slides back. */
+export function logoSneak(stage: HTMLElement) {
+  if (!claim(1800)) return
+  const side = Math.random() < 0.5 ? -1 : 1
+  const out = at(26 * side, -40, `rotate(${12 * side}deg)`)
+  const home = at(0, 0, 'rotate(0deg)')
+  play(actor(stage, RELEASES[RELEASES.length - 1].emoji[0], 28), [home, on(out, 0.25), on(out, 0.8), home], 1800)
+}
+
+/** Hold the logo: a short scene for one of the last four releases. */
+const HOLD_EGGS: Record<string, { ms: number; run: (s: HTMLElement) => void }> = {
+  /** The bunny hops out to a carrot, nibbles it, and hops back. */
+  Carrotbunny: {
+    ms: 2800,
+    run: (s) => {
+      const c = (k: number) => at(48, 14, `scale(${k})`)
+      play(actor(s, '🥕', 20), [c(0), on(c(1), 0.12), on(c(1), 0.45), on(c(0), 0.75), c(0)], 2800)
+      const b = (x: number, y: number, r = 0) => at(x, y, `rotate(${r}deg)`)
+      play(actor(s, '🐰'), [b(0, 0), on(b(12, -30), 0.12), on(b(30, 8), 0.22), on(b(30, 4, 8), 0.3), on(b(30, 8), 0.38),
+        on(b(30, 4, 8), 0.46), on(b(30, 8), 0.54), on(b(14, -26), 0.7), b(0, 0)], 2800)
+    },
+  },
+  /** A bee buzzes around the logo and lands back behind it. */
+  Honeybee: {
+    ms: 3200,
+    run: (s) => {
+      const b = (x: number, y: number, r = 0) => at(x, y, `rotate(${r}deg)`)
+      play(actor(s, '🐝', 22), [b(0, 0), ...Array.from({ length: 5 }, () => b(rnd(-90, 90), rnd(-70, 40), rnd(-20, 20))), b(0, 0)], 3200)
+    },
+  },
+  /** The koala climbs to a leaf and chews on it. */
+  BabyKoala: {
+    ms: 3000,
+    run: (s) => {
+      const l = (k: number) => at(52, -4, `scale(${k})`)
+      play(actor(s, '🌿', 22), [l(0), on(l(1), 0.15), on(l(1), 0.85), l(0)], 3000)
+      play(actor(s, '🐨'), [at(0, 0), on(at(0, 0), 0.15), on(at(30, -6), 0.35), on(at(30, -12), 0.45), on(at(30, -6), 0.55),
+        on(at(30, -12), 0.65), on(at(30, -6), 0.75), at(0, 0)], 3000)
+    },
+  },
+  /** A donut rolls up to the dino, which gulps it down and bounces. */
+  DonutDino: {
+    ms: 3000,
+    run: (s) => {
+      const d = (x: number, y: number, k = 1) => at(x, y, `scale(${k})`)
+      play(actor(s, '🦖', 28), [d(0, 0), on(d(-50, 8), 0.15), on(d(-50, 8), 0.5), on(d(-50, 8, 1.15), 0.58), on(d(-50, 8), 0.66),
+        on(d(-50, 0), 0.74), on(d(-50, 8), 0.82), d(0, 0)], 3000)
+      const n = (x: number, r: number, k: number) => at(x, 12, `rotate(${r}deg) scale(${k})`)
+      play(actor(s, '🍩', 20), [n(90, 0, 0), on(n(90, 0, 1), 0.15), on(n(30, -360, 1), 0.5), on(n(-30, -360, 0), 0.66), n(-30, -360, 0)], 3000)
+    },
+  },
+}
+
+let lastHold = ''
+/** Plays a hold scene from one of the last four releases, never the same one twice in a row. */
+export function holdEgg(stage: HTMLElement) {
+  const names = RELEASES.slice(-4).map((r) => r.name).filter((n) => HOLD_EGGS[n] && n !== lastHold)
+  const name = pick(names)
+  if (!name || !claim(HOLD_EGGS[name].ms)) return
+  lastHold = name
+  HOLD_EGGS[name].run(stage)
 }
 
 // Words typed anywhere outside a text field.

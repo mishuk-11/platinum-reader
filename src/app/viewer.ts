@@ -31,6 +31,7 @@ export class Viewer {
   private running = 0
   private io: IntersectionObserver
   private ro: ResizeObserver
+  private parked?: { top: number; left: number }
   private wheelLock = 0
 
   constructor(public doc: Doc, opts: { page?: number; zoom?: number; mode?: ViewMode } = {}) {
@@ -59,7 +60,8 @@ export class Viewer {
       this.io.observe(p)
     })
 
-    this.ro = new ResizeObserver(() => { if (this.fit) this.setZoom(this.fit) })
+    // Skip while parked (detached tab): clientWidth is 0 there and fit would collapse the zoom.
+    this.ro = new ResizeObserver(() => { if (this.fit && this.el.isConnected && this.el.clientWidth) this.setZoom(this.fit) })
     this.ro.observe(this.el)
     this.el.addEventListener('scroll', () => requestAnimationFrame(() => this.trackPage()), { passive: true })
     this.el.addEventListener('wheel', (e) => this.onWheel(e), { passive: false })
@@ -189,6 +191,11 @@ export class Viewer {
         if (!this.visible.has(i)) return bmp.close()
         const c = h('canvas', { width: bmp.width, height: bmp.height })
         c.getContext('2d')!.drawImage(bmp, 0, 0)
+        // Map the bitmap 1:1 to device pixels. Stretching it to the page's fractional CSS box resampled it and looked soft.
+        if (scale === Math.round(this.k * devicePixelRatio * 1000) / 1000) {
+          c.style.width = bmp.width / devicePixelRatio + 'px'
+          c.style.height = bmp.height / devicePixelRatio + 'px'
+        }
         bmp.close()
         p.querySelector('canvas')?.remove()
         p.prepend(c)
@@ -224,11 +231,30 @@ export class Viewer {
       text.append(span, h('br'))
     }
     const links = h('div', { class: 'links' })
+    const open = (uri: string) => openUrl(uri).catch((err) => console.warn('open link failed', uri, err))
+    // Plain-text URLs (no link annotation in the PDF) become links too.
+    for (const l of t.lines) {
+      if (t.links.some((ln) => ln.uri && l.y < ln.y + ln.h && ln.y < l.y + l.h && l.x < ln.x + ln.w && ln.x < l.x + l.w)) continue
+      measure.font = `${l.h}px sans-serif`
+      const mw = measure.measureText(l.text).width
+      if (!mw) continue
+      const sx = l.w / mw
+      for (const m of l.text.matchAll(/\b(?:https?:\/\/|www\.)[^\s<>"')\]]+/g)) {
+        const url = m[0].replace(/[.,;:!?]+$/, '')
+        const x = l.x + measure.measureText(l.text.slice(0, m.index)).width * sx
+        const href = url.startsWith('www.') ? 'https://' + url : url
+        links.append(h('a', {
+          style: { left: x + 'px', top: l.y + 'px', width: measure.measureText(url).width * sx + 'px', height: l.h + 'px' },
+          title: href,
+          onclick: (e: Event) => { e.preventDefault(); open(href) },
+        }))
+      }
+    }
     for (const ln of t.links) {
       links.append(h('a', {
         style: { left: ln.x + 'px', top: ln.y + 'px', width: ln.w + 'px', height: ln.h + 'px' },
         title: ln.uri ?? `Page ${(ln.page ?? 0) + 1}`,
-        onclick: (e: Event) => { e.preventDefault(); ln.uri ? openUrl(ln.uri) : this.goTo(ln.page!) },
+        onclick: (e: Event) => { e.preventDefault(); ln.uri ? open(ln.uri) : this.goTo(ln.page!) },
       }))
     }
     layer.append(h('div', { class: 'hl' }), h('div', { class: 'find' }), text, links)
@@ -348,6 +374,20 @@ export class Viewer {
       const left = p.offsetLeft + (r ? r[0] * this.k : 0)
       this.el.scrollTo({ top: top - this.el.clientHeight / 3, left: left - this.el.clientWidth / 3 })
     }
+  }
+
+  /** Remember the scroll position before the tab is detached (switching tabs). */
+  park() {
+    this.parked = { top: this.el.scrollTop, left: this.el.scrollLeft }
+  }
+
+  /** Restore the scroll position after the tab is attached again. */
+  unpark() {
+    const p = this.parked
+    if (!p) return
+    this.parked = undefined
+    this.el.scrollTop = p.top
+    this.el.scrollLeft = p.left
   }
 
   destroy() {

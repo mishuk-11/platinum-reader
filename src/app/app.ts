@@ -82,7 +82,7 @@ export async function openFile(path: string, opts: { page?: number; zoom?: numbe
     const viewer = new Viewer(doc, { page: opts.page ?? recent?.page, zoom: opts.zoom })
     if (!state.tabs.includes(tab)) return viewer.destroy() // closed while loading
     tab.viewer = viewer
-    tab.title = doc.meta.Title?.trim() || basename(path)
+    tab.title = basename(path) // PDF Title metadata is often junk (e.g. "done")
     let saveTimer = 0
     viewer.onChange = () => {
       if (focusedTab() === tab) emit()
@@ -105,7 +105,7 @@ export async function openFile(path: string, opts: { page?: number; zoom?: numbe
 
 function tabButton(tab: Tab) {
   const b = h('div', {
-    class: 'tab', role: 'tab', title: tab.path, draggable: 'true',
+    class: 'tab', role: 'tab', title: tab.path,
     onclick: () => activate(tab),
     onauxclick: (e: MouseEvent) => e.button === 1 && requestClose(tab),
     oncontextmenu: (e: MouseEvent) => { e.preventDefault(); tabMenu(tab, e.clientX, e.clientY) },
@@ -114,15 +114,32 @@ function tabButton(tab: Tab) {
   h('span', { class: 'tab-title' }, tab.title),
   h('button', { class: 'tab-close', title: 'Close (Ctrl+W)', 'aria-label': 'Close tab', onclick: (e: Event) => { e.stopPropagation(); requestClose(tab) } }, icon(X, 13)))
   holdPreview(b, tab.path, () => tab.viewer?.doc)
-  // Drag to reorder.
-  b.addEventListener('dragstart', (e) => e.dataTransfer!.setData('platinum/tab', String(tab.id)))
-  b.addEventListener('dragover', (e) => e.preventDefault())
-  b.addEventListener('drop', (e) => {
-    const from = state.tabs.find((t) => String(t.id) === e.dataTransfer!.getData('platinum/tab'))
-    if (!from || from === tab) return
-    state.tabs.splice(state.tabs.indexOf(from), 1)
-    state.tabs.splice(state.tabs.indexOf(tab), 0, from)
-    tabList.replaceChildren(...state.tabs.map((t) => t.btn))
+  // Drag to reorder (pointer events; HTML5 drag-and-drop is unreliable in WebView2).
+  b.addEventListener('pointerdown', (e) => {
+    if (e.button !== 0 || (e.target as HTMLElement).closest('.tab-close')) return
+    const x0 = e.clientX
+    let dragging = false
+    const move = (ev: PointerEvent) => {
+      if (!dragging && Math.abs(ev.clientX - x0) < 6) return
+      if (!dragging) { dragging = true; b.setPointerCapture(ev.pointerId); b.classList.add('dragging') }
+      const over = state.tabs.find((t) => t !== tab && (() => { const r = t.btn.getBoundingClientRect(); return ev.clientX >= r.left && ev.clientX <= r.right })())
+      if (!over) return
+      const to = state.tabs.indexOf(over)
+      state.tabs.splice(state.tabs.indexOf(tab), 1)
+      state.tabs.splice(to, 0, tab)
+      tabList.replaceChildren(...state.tabs.map((t) => t.btn))
+    }
+    const up = () => {
+      b.removeEventListener('pointermove', move)
+      b.classList.remove('dragging')
+      if (dragging) {
+        b.addEventListener('click', (ev) => ev.stopImmediatePropagation(), { capture: true, once: true })
+        render()
+      }
+    }
+    b.addEventListener('pointermove', move)
+    b.addEventListener('pointerup', up, { once: true })
+    b.addEventListener('pointercancel', up, { once: true })
   })
   return b
 }
@@ -212,7 +229,11 @@ export function render() {
   state.active?.btn.scrollIntoView({ block: 'nearest', inline: 'nearest' })
   const mount = (pane: HTMLElement, tab: Tab | null) => {
     const content = tab ? tab.viewer?.el ?? h('div', { class: 'loading' }, h('span', { class: 'spinner big' }), 'Opening…') : home()
-    if (pane.firstChild !== content) pane.replaceChildren(content)
+    if (pane.firstChild === content) return
+    const out = state.tabs.find((t) => t.viewer?.el === pane.firstChild)?.viewer
+    out?.park()
+    pane.replaceChildren(content)
+    if (tab) tab.viewer?.unpark()
   }
   mount(left, state.active)
   workspace.classList.toggle('is-split', !!state.split)

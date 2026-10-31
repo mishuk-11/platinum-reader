@@ -19,7 +19,7 @@ export async function peekCard(path: string, doc?: Doc): Promise<HTMLElement> {
     c.getContext('2d')!.drawImage(bmp, 0, 0)
     bmp.close()
     return h('div', { class: 'peek-card' }, c,
-      h('div', { class: 'peek-info' }, h('b', {}, d.meta.Title?.trim() || path.split(/[\\/]/).pop()!), h('small', {}, `${d.pages} page${d.pages === 1 ? '' : 's'}`)))
+      h('div', { class: 'peek-info' }, h('b', {}, path.split(/[\\/]/).pop()!), h('small', {}, `${d.pages} page${d.pages === 1 ? '' : 's'}`)))
   } finally {
     if (own) d.close()
   }

@@ -7,13 +7,13 @@ import { Trash2, Puzzle, Plus, type IconNode } from 'lucide'
 import { recentList, type Tab } from './app'
 import { ACCENTS, AI, SEARCH, history, resetSettings, setSetting, settings, type Settings } from './store'
 import { dialog, h, icon, toast } from './ui'
-import { playEgg, onHold, releaseShowdown } from './eggs'
+import { playEgg, onHold, logoSneak, holdEgg } from './eggs'
 import { BUILTIN, userExtensions } from './extensions'
 import { copyDiagnostics, openDevtools, resetAllData } from './dev'
 import { updateSettings } from './updates'
 import { openDefaultApps } from './help'
 
-export const VERSION_NAME = 'BabyKoala'
+export const VERSION_NAME = 'DonutDino'
 export const DEVELOPER = 'Inzamam Islam'
 export const GITHUB = 'https://github.com/mishuk-11'
 // Lucide 1.x dropped brand icons; this is its former GitHub glyph.
@@ -117,18 +117,20 @@ export async function showProperties(tab: Tab) {
 
 // ---------- about ----------
 export async function showAbout() {
-  const version = await getVersion().catch(() => '0.4.2-beta')
+  const version = await getVersion().catch(() => '0.5.0-beta')
   let clicks = 0
   const name = h('button', {
     class: 'dev-name', title: DEVELOPER,
     onclick: () => { if (++clicks === 11) { clicks = 0; playEgg(name) } },
   }, DEVELOPER)
   const logo = h('span', { class: 'logo big', title: 'Platinum Reader', style: { cursor: 'pointer', touchAction: 'none' } })
-  // Hold the Pt. icon 3 s (or the name 5 s): every release's emoji, one burst per codename.
-  onHold(logo, 3000, () => releaseShowdown(logo))
-  onHold(name, 5000, () => releaseShowdown(name))
+  const stage = h('span', { class: 'logo-stage' }, logo)
+  // Click the Pt. icon: the release emoji peeks out. Hold it 3 s (or the name 5 s): a release scene plays behind it.
+  logo.addEventListener('click', () => logoSneak(stage))
+  onHold(logo, 3000, () => holdEgg(stage))
+  onHold(name, 5000, () => holdEgg(stage))
   dialog('About', h('div', { class: 'about' },
-    logo,
+    stage,
     h('h1', {}, 'Platinum Reader'),
     h('p', { class: 'version' }, `Version ${version} · “${VERSION_NAME}”`),
     h('p', { class: 'muted' }, 'An ultra-lightweight, open-source reader for PDF, EPUB, MOBI, CBZ/CBR, DjVu, XPS, Markdown and CHM.'),
