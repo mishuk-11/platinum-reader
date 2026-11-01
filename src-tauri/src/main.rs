@@ -96,6 +96,19 @@ fn run_installer(app: tauri::AppHandle, path: String) -> Result<(), String> {
     if p.parent() != Some(update_dir_path().as_path()) || p.extension().and_then(|e| e.to_str()) != Some("exe") {
         return Err("refused: not a downloaded installer".into());
     }
+    // ShellExecute, not CreateProcess: the installer asks for admin rights, and only the shell
+    // shows the UAC prompt for that (CreateProcess fails with os error 740).
+    #[cfg(windows)]
+    {
+        use windows::core::{w, HSTRING};
+        use windows::Win32::UI::Shell::ShellExecuteW;
+        use windows::Win32::UI::WindowsAndMessaging::SW_SHOWNORMAL;
+        let r = unsafe { ShellExecuteW(None, w!("open"), &HSTRING::from(p.as_os_str()), None, None, SW_SHOWNORMAL) };
+        if r.0 as isize <= 32 {
+            return Err("the installer didn't start (was the admin prompt cancelled?)".into());
+        }
+    }
+    #[cfg(not(windows))]
     std::process::Command::new(&p).spawn().map_err(|e| e.to_string())?;
     app.exit(0);
     Ok(())

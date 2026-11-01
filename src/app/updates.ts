@@ -2,7 +2,7 @@
 import { getVersion } from '@tauri-apps/api/app'
 import { invoke } from '@tauri-apps/api/core'
 import { openUrl } from '@tauri-apps/plugin-opener'
-import { Download, Terminal, Clock, X, RefreshCw } from 'lucide'
+import { Download, Terminal, Clock, X, RefreshCw, Sparkles, Bug } from 'lucide'
 import { compareVersions } from './semver'
 import { setSetting, settings } from './store'
 import { dialog, h, icon, toast } from './ui'
@@ -51,8 +51,10 @@ export async function check(manual: boolean) {
 function offer(r: Release, current: string) {
   const setup = r.assets.find((a) => /x64-setup\.exe$/i.test(a.name))
   const sums = r.assets.find((a) => /^SHA256SUMS(\.txt)?$/i.test(a.name))
-  const notes = h('pre', { class: 'update-notes' })
-  notes.textContent = (r.body || 'No release notes.').slice(0, 2000)
+  const items = whatsNew(r.body || '')
+  const notes = h('ul', { class: 'update-notes' },
+    ...(items.length ? items : [{ fix: false, text: 'See the full release notes on GitHub.' }]).map(({ fix, text }) =>
+      h('li', { class: fix ? 'fix' : 'new' }, h('span', { class: 'update-tag' }, icon(fix ? Bug : Sparkles, 13), fix ? 'Fix' : 'New'), h('span', {}, text))))
   const progress = h('div', { class: 'update-progress', hidden: true }, h('i'))
   const status = h('p', { class: 'muted small' })
   const buttons = h('div', { class: 'update-actions' },
@@ -65,7 +67,18 @@ function offer(r: Release, current: string) {
     h('button', { class: 'btn', onclick: () => { setSetting('skippedVersion', r.tag_name); close() } }, icon(X, 16), 'Skip this version'))
   const close = dialog('Update available', h('div', { class: 'update' },
     h('p', {}, h('b', {}, r.name || r.tag_name), ` is available. You have ${current}.`),
-    notes, progress, status, buttons), 'wide')
+    notes,
+    h('a', { class: 'small', href: '#', onclick: (e: Event) => { e.preventDefault(); openUrl(r.html_url) } }, 'Full release notes on GitHub'),
+    progress, status, buttons), 'wide')
+}
+
+/** The "What's new" bullets of the release notes as plain text, each marked fix or new. */
+export function whatsNew(body: string) {
+  const section = body.split(/^#{2,3}\s+/m).find((s) => /^what'?s new/i.test(s)) ?? ''
+  return section.split('\n')
+    .filter((l) => /^\s*[-*]\s+/.test(l))
+    .map((l) => l.replace(/^\s*[-*]\s+/, '').replace(/[`*]/g, '').trim())
+    .map((text) => /^fix(ed)?\b/i.test(text) ? { fix: true, text: text.replace(/^fix(ed)?\s*:?\s*/i, '') } : { fix: false, text })
 }
 
 /** Downloads the installer, checks it against SHA256SUMS, then runs it (the app closes). */

@@ -289,7 +289,11 @@ body.dropping .workspace::after { content: "Drop to open"; position: absolute; i
 .shortcuts dt kbd { font-size: 12px; }
 
 /* ---------- updates ---------- */
-.update-notes { max-height: 220px; overflow: auto; white-space: pre-wrap; font: 12.5px/1.5 ui-monospace, Consolas, monospace; background: var(--bg); border: 1px solid var(--border); border-radius: 8px; padding: 10px; }
+.update-notes { max-height: 220px; overflow: auto; list-style: none; margin: 0 0 6px; padding: 0; display: grid; gap: 6px; }
+.update-notes li { display: flex; align-items: flex-start; gap: 10px; padding: 9px 12px; border-radius: 10px; background: var(--bg); border: 1px solid var(--border); border-left: 3px solid var(--accent); line-height: 1.45; }
+.update-notes li.fix { border-left-color: #3fb950; }
+.update-tag { flex: none; display: inline-flex; align-items: center; gap: 4px; padding: 2px 8px; border-radius: 999px; font-size: 11.5px; font-weight: 600; color: var(--accent); background: color-mix(in srgb, var(--accent) 16%, transparent); }
+.update-notes li.fix .update-tag { color: #3fb950; background: color-mix(in srgb, #3fb950 16%, transparent); }
 .update-actions { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 12px; }
 .update-progress { height: 6px; border-radius: 6px; background: var(--surface-2); overflow: hidden; margin-top: 10px; }
 .update-progress i { display: block; height: 100%; width: 0; background: var(--accent); transition: width .25s; }
@@ -365,6 +369,8 @@ body.dropping .workspace::after { content: "Drop to open"; position: absolute; i
 .about h1 { margin: 6px 0 0; font-size: 24px; }
 .about p { margin: 0; }
 .about .version { color: var(--accent); font-weight: 500; }
+.formats { display: flex; flex-wrap: wrap; justify-content: center; gap: 6px; max-width: 380px; margin-top: 4px; }
+.format-chip { display: inline-flex; align-items: center; gap: 5px; padding: 3px 10px; border-radius: 999px; font-size: 12px; font-weight: 600; background: color-mix(in srgb, currentColor 14%, transparent); border: 1px solid color-mix(in srgb, currentColor 30%, transparent); }
 .about .dev { display: grid; gap: 2px; margin: 12px 0 8px; }
 .dev-name { border: 0; background: none; font-size: 17px; font-weight: 600; padding: 2px 8px; border-radius: 6px; user-select: none; }
 .dev-name:hover { background: var(--hover); }

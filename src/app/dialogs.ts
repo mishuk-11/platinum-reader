@@ -3,7 +3,7 @@ import { getVersion } from '@tauri-apps/api/app'
 import { invoke } from '@tauri-apps/api/core'
 import { ask, open as openPicker } from '@tauri-apps/plugin-dialog'
 import { openUrl } from '@tauri-apps/plugin-opener'
-import { Trash2, Puzzle, Plus, type IconNode } from 'lucide'
+import { Trash2, Puzzle, Plus, FileText, BookOpen, Book, Images, ScanText, FileType, FileCode, Layers, type IconNode } from 'lucide'
 import { recentList, type Tab } from './app'
 import { ACCENTS, AI, SEARCH, history, resetSettings, setSetting, settings, type Settings } from './store'
 import { dialog, h, icon, toast } from './ui'
@@ -116,8 +116,12 @@ export async function showProperties(tab: Tab) {
 }
 
 // ---------- about ----------
+const FORMATS: [string, IconNode, string][] = [
+  ['PDF', FileText, '#e5534b'], ['EPUB', BookOpen, '#3fb950'], ['MOBI', Book, '#f0883e'], ['CBZ/CBR', Images, '#a371f7'],
+  ['DjVu', ScanText, '#2f81f7'], ['XPS', FileType, '#39c5cf'], ['Markdown', FileCode, '#d29922'], ['CHM', Layers, '#db61a2'],
+]
 export async function showAbout() {
-  const version = await getVersion().catch(() => '0.5.1-beta')
+  const version = await getVersion().catch(() => '0.5.2-beta')
   let clicks = 0
   const name = h('button', {
     class: 'dev-name', title: DEVELOPER,
@@ -125,7 +129,7 @@ export async function showAbout() {
   }, DEVELOPER)
   const logo = h('span', { class: 'logo big', title: 'Platinum Reader', style: { cursor: 'pointer', touchAction: 'none' } })
   const stage = h('span', { class: 'logo-stage' }, logo)
-  // Click the Pt. icon: the release emoji peeks out. Hold it 3 s (or the name 5 s): a release scene plays behind it.
+  // Click the Pt. icon: the current release's scene. Hold it 3 s (or the name 5 s): a scene from one of the four releases before.
   logo.addEventListener('click', () => logoSneak(stage))
   onHold(logo, 3000, () => holdEgg(stage))
   onHold(name, 5000, () => holdEgg(stage))
@@ -133,7 +137,9 @@ export async function showAbout() {
     stage,
     h('h1', {}, 'Platinum Reader'),
     h('p', { class: 'version' }, `Version ${version} · “${VERSION_NAME}”`),
-    h('p', { class: 'muted' }, 'An ultra-lightweight, open-source reader for PDF, EPUB, MOBI, CBZ/CBR, DjVu, XPS, Markdown and CHM.'),
+    h('p', { class: 'muted' }, 'Ultra-lightweight, open-source document reader'),
+    h('div', { class: 'formats' }, ...FORMATS.map(([label, ic, color]) =>
+      h('span', { class: 'format-chip', style: { color } }, icon(ic, 14), label))),
     h('div', { class: 'dev' }, h('small', { class: 'muted' }, 'Developed by'), name),
     h('button', { class: 'btn', onclick: () => openUrl(GITHUB) }, icon(Github, 16), 'mishuk-11'),
     h('p', { class: 'muted small' }, 'Licensed under AGPL-3.0 · Built with Tauri, MuPDF, djvu-rs, marked, lucide')), 'about-modal')

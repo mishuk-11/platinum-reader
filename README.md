@@ -197,6 +197,7 @@ src-tauri/           Rust: file reading, CLI args, single instance, CHM unpackin
 
 | Version | Codename |
 |---|---|
+| 0.5.2-beta | DonutDino |
 | 0.5.1-beta | DonutDino |
 | 0.5.0-beta | DonutDino |
 | 0.4.3-beta | BabyKoala |

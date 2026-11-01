@@ -196,8 +196,10 @@ function play(el: HTMLElement, frames: Keyframe[], ms: number) {
   el.animate(frames, { duration: ms, easing: 'ease-in-out', fill: 'both' }).onfinish = () => el.remove()
 }
 
-/** Click the logo: the current release's emoji peeks out from behind it, then slides back. */
+/** Click the logo: the current release's own scene; without one, its emoji peeks out and slides back. */
 export function logoSneak(stage: HTMLElement) {
+  const scene = HOLD_EGGS[RELEASES[RELEASES.length - 1].name]
+  if (scene) { if (claim(scene.ms)) scene.run(stage); return }
   if (!claim(1800)) return
   const side = Math.random() < 0.5 ? -1 : 1
   const out = at(26 * side, -40, `rotate(${12 * side}deg)`)
@@ -205,7 +207,7 @@ export function logoSneak(stage: HTMLElement) {
   play(actor(stage, RELEASES[RELEASES.length - 1].emoji[0], 28), [home, on(out, 0.25), on(out, 0.8), home], 1800)
 }
 
-/** Hold the logo: a short scene for one of the last four releases. */
+/** Release scenes. The current release's plays on click; the four releases before it play on hold. */
 const HOLD_EGGS: Record<string, { ms: number; run: (s: HTMLElement) => void }> = {
   /** The bunny hops out to a carrot, nibbles it, and hops back. */
   Carrotbunny: {
@@ -250,9 +252,10 @@ const HOLD_EGGS: Record<string, { ms: number; run: (s: HTMLElement) => void }> =
 }
 
 let lastHold = ''
-/** Plays a hold scene from one of the last four releases, never the same one twice in a row. */
+/** Plays a scene from one of the four releases before the current one, never the same one twice in a row.
+ *  A new release moves the old current one into this pool and pushes the oldest out. */
 export function holdEgg(stage: HTMLElement) {
-  const names = RELEASES.slice(-4).map((r) => r.name).filter((n) => HOLD_EGGS[n] && n !== lastHold)
+  const names = RELEASES.slice(-5, -1).map((r) => r.name).filter((n) => HOLD_EGGS[n] && n !== lastHold)
   const name = pick(names)
   if (!name || !claim(HOLD_EGGS[name].ms)) return
   lastHold = name
