@@ -117,7 +117,7 @@ export async function showProperties(tab: Tab) {
 
 // ---------- about ----------
 export async function showAbout() {
-  const version = await getVersion().catch(() => '0.5.0-beta')
+  const version = await getVersion().catch(() => '0.5.1-beta')
   let clicks = 0
   const name = h('button', {
     class: 'dev-name', title: DEVELOPER,

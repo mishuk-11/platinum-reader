@@ -131,7 +131,7 @@ kbd { font: 11px/1 ui-monospace, monospace; color: var(--muted); padding: 2px 5p
 /* window controls */
 .win-controls { display: flex; align-self: stretch; flex: none; }
 .win-btn { width: 44px; border: 0; background: none; display: grid; place-items: center; color: var(--muted); }
-.win-btn:hover { background: var(--hover); color: var(--text); }
+.win-btn:hover, .win-btn.hover { background: var(--hover); color: var(--text); }
 .win-btn.close:hover { background: #e81123; color: #fff; }
 
 /* ---------- toolbar ---------- */

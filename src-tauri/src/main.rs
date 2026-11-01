@@ -1,6 +1,8 @@
 #![cfg_attr(not(debug_assertions), windows_subsystem = "windows")]
 
 mod peek;
+#[cfg(windows)]
+mod snap;
 
 use std::path::{Path, PathBuf};
 use std::sync::Mutex;
@@ -131,6 +133,22 @@ fn set_peek_helper(enabled: bool) {
     peek::set_enabled(enabled);
 }
 
+/// Where the HTML maximize button is (CSS pixels; all zero when hidden), so Windows 11 can show
+/// Snap Layouts when it is hovered. See `snap.rs`.
+#[tauri::command]
+fn set_max_button_rect(window: tauri::WebviewWindow, x: f64, y: f64, w: f64, h: f64) {
+    #[cfg(windows)]
+    {
+        let s = window.scale_factor().unwrap_or(1.0);
+        let px = |v: f64| (v * s).round() as i32;
+        let rect = windows::Win32::Foundation::RECT { left: px(x), top: px(y), right: px(x + w), bottom: px(y + h) };
+        let win = window.clone();
+        let _ = window.run_on_main_thread(move || snap::set_rect(&win, rect));
+    }
+    #[cfg(not(windows))]
+    let _ = (window, x, y, w, h);
+}
+
 #[tauri::command]
 fn open_devtools(window: tauri::WebviewWindow) {
     window.open_devtools();
@@ -210,7 +228,7 @@ fn main() {
             tauri::WebviewWindowBuilder::from_config(app.handle(), &config)?.build()?;
             Ok(())
         })
-        .invoke_handler(tauri::generate_handler![read_file, write_file, file_size, pending_files, extract_chm, open_devtools, set_peek_helper, update_dir, download_update, run_installer, system_info, save_feedback])
+        .invoke_handler(tauri::generate_handler![read_file, write_file, file_size, pending_files, extract_chm, open_devtools, set_max_button_rect, set_peek_helper, update_dir, download_update, run_installer, system_info, save_feedback])
         .build(tauri::generate_context!())
         .expect("error while running Platinum Reader")
         .run(|_app, _event| {

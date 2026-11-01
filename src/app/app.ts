@@ -3,6 +3,7 @@ import { open as openPicker } from '@tauri-apps/plugin-dialog'
 import { revealItemInDir } from '@tauri-apps/plugin-opener'
 import { WebviewWindow, getCurrentWebviewWindow } from '@tauri-apps/api/webviewWindow'
 import { getCurrentWindow } from '@tauri-apps/api/window'
+import { invoke } from '@tauri-apps/api/core'
 import { FileText, X, Plus, Columns2, AppWindow, Copy, FolderOpen, CopyPlus, XCircle, Minus, Square, Clock, BookOpen } from 'lucide'
 import { Doc, SUPPORTED } from '../engine/client'
 import { Viewer } from './viewer'
@@ -31,9 +32,21 @@ const basename = (p: string) => p.split(/[\\/]/).pop() ?? p
 
 // ---------- DOM ----------
 export const tabList = h('div', { class: 'tab-list', role: 'tablist' })
+const maxBtn = h('button', { class: 'win-btn', title: 'Maximize', 'aria-label': 'Maximize', onclick: () => getCurrentWindow().toggleMaximize() }, icon(Square, 13))
+// Windows 11 Snap Layouts: the native side puts an invisible window over this button so Windows
+// treats it as a real maximize button (and handles hover and click there). Keep it told where the button is.
+if (navigator.userAgent.includes('Windows')) {
+  let last = ''
+  setInterval(() => {
+    const r = maxBtn.getBoundingClientRect()
+    const key = `${r.x},${r.y},${r.width},${r.height}`
+    if (key !== last) { last = key; invoke('set_max_button_rect', { x: r.x, y: r.y, w: r.width, h: r.height }) }
+  }, 300)
+  getCurrentWindow().listen<boolean>('max-hover', (e) => maxBtn.classList.toggle('hover', e.payload))
+}
 const winControls = h('div', { class: 'win-controls' },
   h('button', { class: 'win-btn', title: 'Minimize', 'aria-label': 'Minimize', onclick: () => getCurrentWindow().minimize() }, icon(Minus, 15)),
-  h('button', { class: 'win-btn', title: 'Maximize', 'aria-label': 'Maximize', onclick: () => getCurrentWindow().toggleMaximize() }, icon(Square, 13)),
+  maxBtn,
   h('button', { class: 'win-btn close', title: 'Close', 'aria-label': 'Close', onclick: () => getCurrentWindow().close() }, icon(X, 16)))
 export const tabbar = h('div', { class: 'tabbar' },
   h('div', { class: 'brand', 'data-tauri-drag-region': true }, h('span', { class: 'logo' }), 'Platinum Reader'),
